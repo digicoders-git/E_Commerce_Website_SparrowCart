@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import {
-  FiShoppingCart, FiMenu, FiSearch, FiHeart, FiX, FiUser,
+  FiMenu, FiSearch, FiX, FiUser,
   FiLogOut, FiChevronDown, FiPackage, FiMapPin, FiSettings
 } from 'react-icons/fi'
 import { MdFitnessCenter } from 'react-icons/md'
@@ -25,7 +24,6 @@ const categories = [
 ]
 
 export default function Navbar() {
-  const { count, wishlist } = useCart()
   const { user, logout, openAuthModal } = useAuth()
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -101,11 +99,12 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
 
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 shrink-0">
-            <img src="/logo.png" alt="logo" className="w-9 h-9 rounded-full object-cover border-2 border-accent shadow" />
-            <span className="text-lg font-extrabold tracking-wide hidden sm:block">
-              Sparrow<span className="text-accent">Cart</span>
-            </span>
+          <Link to="/" className="flex items-center gap-2.5 shrink-0">
+            <img src="/logo.png" alt="logo" className="w-14 h-14 rounded-xl object-cover shadow-lg" />
+            <div className="hidden sm:flex flex-col leading-none">
+              <span className="text-xl font-black tracking-tight">Sparrow<span className="text-accent">Cart</span></span>
+              <span className="text-white/50 text-[10px] font-medium tracking-widest uppercase">Shop Smart</span>
+            </div>
           </Link>
 
           {/* Category Dropdown */}
@@ -143,8 +142,8 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Desktop Search */}
-          <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-xl">
+          {/* Desktop Search - moved to right */}
+          <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-xl ml-auto">
             <div className="flex w-full bg-white rounded-xl overflow-hidden shadow-sm border border-white/20">
               <input
                 value={search}
@@ -159,88 +158,12 @@ export default function Navbar() {
           </form>
 
           {/* Right Icons */}
-          <div className="flex items-center gap-1 ml-auto">
+          <div className="flex items-center gap-1">
 
             {/* Mobile Search */}
             <button onClick={() => setSearchOpen(!searchOpen)} className="md:hidden p-2 hover:bg-teal-light rounded-xl transition">
               {searchOpen ? <FiX size={20} /> : <FiSearch size={20} />}
             </button>
-
-            {/* Wishlist */}
-            <Link to="/wishlist" className="relative p-2 hover:bg-teal-light rounded-xl transition hidden sm:flex items-center">
-              <FiHeart size={20} />
-              {wishlist.length > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 bg-coral text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
-                  {wishlist.length}
-                </span>
-              )}
-            </Link>
-
-            {/* Account */}
-            {user ? (
-              <div className="relative hidden sm:block" ref={userRef}>
-                <button
-                  onClick={() => setUserMenuOpen(o => !o)}
-                  className="flex items-center gap-2 px-3 py-2 hover:bg-teal-light rounded-xl transition text-sm"
-                >
-                  <div className="w-7 h-7 bg-accent rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0">
-                    {user.name?.[0]?.toUpperCase()}
-                  </div>
-                  <span className="hidden lg:block max-w-[80px] truncate text-sm font-medium">{user.name?.split(' ')[0]}</span>
-                  <FiChevronDown size={13} className={`transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
-                </button>
-                {userMenuOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl shadow-2xl border border-border py-2 z-50">
-                    <div className="px-4 py-3 border-b border-border">
-                      <p className="font-bold text-dark text-sm">{user.name}</p>
-                      <p className="text-muted text-xs truncate">{user.email}</p>
-                    </div>
-                    {[
-                      { to: '/account', icon: <FiUser size={14} />, label: 'My Profile' },
-                      { to: '/account', state: { tab: 'orders' }, icon: <FiPackage size={14} />, label: 'My Orders' },
-                      { to: '/wishlist', icon: <FiHeart size={14} />, label: 'Wishlist' },
-                      { to: '/account', state: { tab: 'addresses' }, icon: <FiMapPin size={14} />, label: 'Addresses' },
-                      { to: '/account', state: { tab: 'settings' }, icon: <FiSettings size={14} />, label: 'Settings' },
-                    ].map(item => (
-                      <Link
-                        key={item.label}
-                        to={item.to}
-                        state={item.state}
-                        onClick={() => setUserMenuOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-dark hover:bg-gray-50 transition"
-                      >
-                        <span className="text-muted">{item.icon}</span> {item.label}
-                      </Link>
-                    ))}
-                    <div className="border-t border-border mt-1" />
-                    <button
-                      onClick={() => { logout(); setUserMenuOpen(false) }}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-coral hover:bg-red-50 transition"
-                    >
-                      <FiLogOut size={14} /> Logout
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <button
-                onClick={() => openAuthModal()}
-                className="hidden sm:flex items-center gap-2 px-4 py-2 hover:bg-teal-light rounded-xl transition text-sm font-semibold"
-              >
-                <FiUser size={18} /> Login
-              </button>
-            )}
-
-            {/* Cart */}
-            <Link to="/cart" className="relative flex items-center gap-2 bg-coral hover:bg-coral-dark px-4 py-2.5 rounded-xl transition font-bold text-sm ml-1 shadow-lg shadow-coral/20">
-              <FiShoppingCart size={18} />
-              <span className="hidden sm:inline">Cart</span>
-              {count > 0 && (
-                <span className="bg-white text-coral text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
-                  {count}
-                </span>
-              )}
-            </Link>
 
             {/* Mobile Menu Toggle */}
             <button className="md:hidden p-2 hover:bg-teal-light rounded-xl transition ml-1" onClick={() => setMenuOpen(!menuOpen)}>
@@ -255,23 +178,17 @@ export default function Navbar() {
             <Link to="/" className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap transition hover:text-accent ${location.pathname === '/' ? 'text-accent border-b-2 border-accent' : 'text-white/80'}`}>
               Home
             </Link>
-            <Link to="/products" className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap transition hover:text-accent ${location.pathname === '/products' && !new URLSearchParams(location.search).get('category') ? 'text-accent border-b-2 border-accent' : 'text-white/80'}`}>
-              All Products
-            </Link>
-            {categories.map(cat => (
-              <Link
-                key={cat.name}
-                to={`/products?category=${cat.name}`}
-                className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap transition hover:text-accent flex items-center gap-1.5 ${new URLSearchParams(location.search).get('category') === cat.name ? 'text-accent border-b-2 border-accent' : 'text-white/80'}`}
-              >
-                <span className={cat.color}>{cat.icon}</span> {cat.name}
-              </Link>
-            ))}
             <Link to="/products?sort=discount" className="px-4 py-2.5 text-sm font-medium whitespace-nowrap text-coral hover:text-coral-dark transition">
               Deals
             </Link>
             <Link to="/products?badge=New" className="px-4 py-2.5 text-sm font-medium whitespace-nowrap text-accent hover:text-white transition">
               New Arrivals
+            </Link>
+            <Link to="/about" className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap transition hover:text-accent ${location.pathname === '/about' ? 'text-accent border-b-2 border-accent' : 'text-white/80'}`}>
+              About Us
+            </Link>
+            <Link to="/contact" className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap transition hover:text-accent ${location.pathname === '/contact' ? 'text-accent border-b-2 border-accent' : 'text-white/80'}`}>
+              Contact Us
             </Link>
           </div>
         </div>
@@ -314,9 +231,9 @@ export default function Navbar() {
               </Link>
             ))}
             <div className="border-t border-white/10 my-1" />
-            <Link to="/wishlist" className="py-2.5 px-3 rounded-xl hover:bg-teal text-sm flex items-center gap-2">
-              <FiHeart size={15} /> Wishlist {wishlist.length > 0 && `(${wishlist.length})`}
-            </Link>
+            <Link to="/about" className="py-2.5 px-3 rounded-xl hover:bg-teal text-sm">About Us</Link>
+            <Link to="/contact" className="py-2.5 px-3 rounded-xl hover:bg-teal text-sm">Contact Us</Link>
+            <div className="border-t border-white/10 my-1" />
             {user ? (
               <>
                 <Link to="/account" className="py-2.5 px-3 rounded-xl hover:bg-teal text-sm flex items-center gap-2">

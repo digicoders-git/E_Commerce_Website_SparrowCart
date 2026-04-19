@@ -1,11 +1,7 @@
 import { Link } from 'react-router-dom'
-import { useCart } from '../context/CartContext'
-import { FiHeart, FiShoppingCart, FiEye } from 'react-icons/fi'
-import { FaHeart, FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa'
+import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa'
 
 export default function ProductCard({ product }) {
-  const { addToCart, toggleWishlist, isWishlisted } = useCart()
-  const wishlisted = isWishlisted(product.id)
   const discount = product.originalPrice > product.price
     ? Math.round((1 - product.price / product.originalPrice) * 100)
     : 0
@@ -44,32 +40,7 @@ export default function ProductCard({ product }) {
           )}
         </div>
 
-        {/* Wishlist */}
-        <button
-          onClick={() => toggleWishlist(product)}
-          className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full shadow flex items-center justify-center hover:scale-110 transition-transform"
-        >
-          {wishlisted
-            ? <FaHeart className="text-coral" size={14} />
-            : <FiHeart className="text-gray-400" size={14} />
-          }
-        </button>
 
-        {/* Quick actions overlay */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300 flex gap-2">
-          <button
-            onClick={() => addToCart(product)}
-            className="flex-1 bg-white text-dark text-xs font-semibold py-2 rounded-lg hover:bg-accent hover:text-white transition flex items-center justify-center gap-1"
-          >
-            <FiShoppingCart size={13} /> Add to Cart
-          </button>
-          <Link
-            to={`/products/${product.id}`}
-            className="w-8 h-8 bg-white rounded-lg flex items-center justify-center hover:bg-accent hover:text-white transition"
-          >
-            <FiEye size={14} />
-          </Link>
-        </div>
       </div>
 
       {/* Info */}

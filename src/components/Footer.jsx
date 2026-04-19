@@ -4,7 +4,7 @@ import { FiMail, FiPhone, FiMapPin, FiInstagram, FiTwitter, FiFacebook, FiYoutub
 export default function Footer() {
   return (
     <footer className="bg-teal text-white mt-auto">
-      <div className="max-w-7xl mx-auto px-4 py-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+      <div className="max-w-7xl mx-auto px-4 py-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
 
         {/* Brand */}
         <div>
@@ -28,24 +28,10 @@ export default function Footer() {
         <div>
           <h4 className="font-bold mb-4 text-white">Quick Links</h4>
           <ul className="space-y-2.5 text-sm text-white/60">
-            {[['Home', '/'], ['Products', '/products'], ['Cart', '/cart'], ['Wishlist', '/wishlist'], ['Checkout', '/checkout']].map(([label, path]) => (
+            {[['Home', '/'], ['Products', '/products'], ['About Us', '/about'], ['Contact Us', '/contact']].map(([label, path]) => (
               <li key={label}>
                 <Link to={path} className="hover:text-accent transition flex items-center gap-1.5">
                   <span className="text-accent text-xs">›</span> {label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Categories */}
-        <div>
-          <h4 className="font-bold mb-4 text-white">Categories</h4>
-          <ul className="space-y-2.5 text-sm text-white/60">
-            {['Electronics', 'Fashion', 'Sports', 'Home'].map(cat => (
-              <li key={cat}>
-                <Link to={`/products?category=${cat}`} className="hover:text-accent transition flex items-center gap-1.5">
-                  <span className="text-accent text-xs">›</span> {cat}
                 </Link>
               </li>
             ))}

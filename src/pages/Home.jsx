@@ -4,7 +4,7 @@ import { products } from '../data/products'
 import ProductCard from '../components/ProductCard'
 import {
   FiTruck, FiShield, FiRefreshCw, FiHeadphones, FiArrowRight,
-  FiStar, FiChevronLeft, FiChevronRight, FiMonitor, FiHome, FiShoppingBag, FiZap, FiMail
+  FiStar, FiChevronLeft, FiChevronRight, FiMonitor, FiHome, FiShoppingBag, FiZap
 } from 'react-icons/fi'
 import { MdFitnessCenter } from 'react-icons/md'
 
@@ -354,24 +354,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Newsletter ── */}
-      <section className="max-w-7xl mx-auto px-4 py-12">
-        <div className="bg-accent-light rounded-3xl px-8 py-12 text-center border border-accent/20">
-          <FiMail size={32} className="text-accent mx-auto mb-3" />
-          <h2 className="text-2xl font-extrabold text-dark mb-2">Stay in the Loop</h2>
-          <p className="text-muted mb-6 max-w-md mx-auto">Subscribe for exclusive deals, new arrivals, and flash sale alerts.</p>
-          <form className="flex max-w-md mx-auto gap-3" onSubmit={e => e.preventDefault()}>
-            <input
-              type="email"
-              placeholder="Enter your email address"
-              className="flex-1 px-4 py-3 rounded-xl border border-border outline-none focus:border-accent text-sm"
-            />
-            <button type="submit" className="bg-teal hover:bg-teal-light text-white font-bold px-6 py-3 rounded-xl transition whitespace-nowrap">
-              Subscribe
-            </button>
-          </form>
-        </div>
-      </section>
+
 
       <style>{`
         @keyframes slideInLeft {
