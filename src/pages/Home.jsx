@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { products } from '../data/products'
 import ProductCard from '../components/ProductCard'
 import {
   FiTruck, FiShield, FiRefreshCw, FiHeadphones, FiArrowRight,
   FiStar, FiChevronLeft, FiChevronRight, FiMonitor, FiHome, FiShoppingBag, FiZap
 } from 'react-icons/fi'
 import { MdFitnessCenter } from 'react-icons/md'
+import { getProducts, getCategories, getSliders, getOfferImages, getOfferTexts } from '../api/api'
+import { mapProduct, mapCategory, mapSlider, mapOfferImage, mapOfferText } from '../utils/dataMapper'
 
 const slides = [
   {
@@ -89,13 +90,57 @@ const offerBanners = [
   { code: 'FLAT50', off: '₹50 OFF', desc: 'On orders above ₹499', color: 'from-coral to-coral-dark' },
 ]
 
-export default function Home() {
+const Home = () => {
   const [slide, setSlide] = useState(0)
   const [animating, setAnimating] = useState(false)
+  const [slides, setSlides] = useState([])
+  const [categories, setCategories] = useState([])
+  const [featuredProducts, setFeaturedProducts] = useState([])
+  const [newArrivals, setNewArrivals] = useState([])
+  const [offerImages, setOfferImages] = useState([])
+  const [offerTexts, setOfferTexts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const navigate = useNavigate()
 
-  const featured = products.filter(p => p.badge).slice(0, 8)
-  const newArrivals = products.slice(-4)
+  useEffect(() => {
+    const loadHomeData = async () => {
+      try {
+        setLoading(true)
+        const [slidersData, categoriesData, productsData, offerImagesData, offerTextsData] = await Promise.all([
+          getSliders(),
+          getCategories(),
+          getProducts(),
+          getOfferImages(),
+          getOfferTexts()
+        ])
+
+        if (slidersData.sliders && slidersData.sliders.length > 0) {
+          setSlides(slidersData.sliders.map(mapSlider))
+        } else {
+          // Fallback slides if none in backend
+          setSlides([ /* default slides could go here if needed */ ])
+        }
+
+        setCategories(categoriesData.categories.map(mapCategory))
+        
+        const mappedProducts = productsData.products.map(mapProduct)
+        setFeaturedProducts(mappedProducts.filter(p => p.badge).slice(0, 8))
+        setNewArrivals(mappedProducts.slice(0, 4)) // Fix: slice(0, 4) for newest first
+        
+        setOfferImages(offerImagesData.offerImages?.map(mapOfferImage) || [])
+        setOfferTexts(offerTextsData.offerTexts?.map(mapOfferText) || [])
+        
+        setLoading(false)
+      } catch (err) {
+        console.error('Failed to load home data:', err)
+        setError('Failed to connect to backend server.')
+        setLoading(false)
+      }
+    }
+
+    loadHomeData()
+  }, [])
 
   const goTo = useCallback((idx) => {
     if (animating) return
@@ -107,13 +152,33 @@ export default function Home() {
   const prev = () => goTo((slide - 1 + slides.length) % slides.length)
   const next = useCallback(() => goTo((slide + 1) % slides.length), [slide, goTo])
 
-  // Auto-play
-  useEffect(() => {
-    const t = setInterval(next, 4500)
-    return () => clearInterval(t)
-  }, [next])
-
   const s = slides[slide]
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-neutral">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-teal border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-muted font-medium animate-pulse">Loading SparrowCart Experience...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !s) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-neutral p-4">
+        <div className="bg-white rounded-3xl p-8 shadow-xl max-w-md text-center border border-border">
+          <FiZap className="mx-auto text-coral mb-4" size={48} />
+          <h2 className="text-2xl font-bold text-dark mb-2">Oops! Something went wrong</h2>
+          <p className="text-muted mb-6">{error || 'No content found in backend. Please add slides/products in admin panel.'}</p>
+          <button onClick={() => window.location.reload()} className="bg-teal text-white px-8 py-3 rounded-xl font-bold hover:bg-teal-light transition shadow-lg shadow-teal/20">
+            Try Again
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="bg-neutral min-h-screen">
@@ -198,21 +263,39 @@ export default function Home() {
       </section>
 
       {/* ── Offer Coupon Strip ── */}
-      <section className="bg-white border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 py-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {offerBanners.map(o => (
-            <div key={o.code} className={`bg-gradient-to-r ${o.color} rounded-2xl px-5 py-3.5 flex items-center gap-4 text-white shadow-sm`}>
-              <div className="flex-1 min-w-0">
-                <div className="font-extrabold text-lg leading-tight">{o.off}</div>
-                <div className="text-white/80 text-xs">{o.desc}</div>
-              </div>
-              <div className="bg-white/20 border border-white/30 rounded-lg px-3 py-1.5 font-mono font-bold text-xs shrink-0">
-                {o.code}
-              </div>
+      {(offerTexts.length > 0 || offerBanners.length > 0) && (
+        <section className="bg-white border-b border-border">
+          <div className="max-w-7xl mx-auto px-4 py-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {(offerTexts.length > 0 ? offerTexts : offerBanners).slice(0, 3).map((o, idx) => {
+                const colors = [
+                  'from-teal to-teal-light',
+                  'from-purple-600 to-purple-800',
+                  'from-coral to-coral-dark'
+                ];
+                return (
+                  <div key={o.id || o.code} className={`bg-gradient-to-r ${o.color || colors[idx % colors.length]} rounded-2xl px-6 py-4 flex items-center gap-4 text-white shadow-lg transition-transform hover:scale-[1.02]`}>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-extrabold text-lg leading-tight truncate">
+                        {o.text || o.off}
+                      </div>
+                      <div className="text-white/80 text-xs mt-0.5">
+                        {o.desc || 'Exclusive Promotional Offer'}
+                      </div>
+                    </div>
+                    {o.code && (
+                      <div className="bg-white/20 border border-white/30 rounded-lg px-3 py-1.5 font-mono font-bold text-xs shrink-0">
+                        {o.code}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
-          ))}
-        </div>
-      </section>
+          </div>
+        </section>
+      )}
+
 
       {/* ── Features ── */}
       <section className="bg-white border-b border-border">
@@ -244,16 +327,24 @@ export default function Home() {
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {categories.map(cat => (
-            <Link
-              key={cat.name}
-              to={`/products?category=${cat.name}`}
-              className={`bg-white rounded-2xl p-6 text-center shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 group border-2 border-transparent ${cat.border}`}
+            <Link 
+              key={cat.id} 
+              to={`/products?category=${cat.name}`} 
+              className="group flex flex-col items-center p-5 rounded-[2rem] bg-white border border-border hover:border-teal hover:shadow-2xl hover:shadow-teal/10 transition-all duration-500"
             >
-              <div className={`w-16 h-16 ${cat.color} rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                {cat.icon}
+              <div className="w-full aspect-square rounded-2xl bg-neutral flex items-center justify-center overflow-hidden mb-4 group-hover:scale-105 transition-all duration-500 shadow-sm group-hover:shadow-lg">
+                <img 
+                  src={cat.image} 
+                  alt={cat.name} 
+                  className="w-full h-full object-contain p-2 transition-transform duration-700 group-hover:scale-110"
+                  onError={(e) => {
+                    e.target.src = 'https://via.placeholder.com/300?text=' + cat.name;
+                    e.target.onerror = null;
+                  }}
+                />
               </div>
-              <div className="font-bold text-dark group-hover:text-teal transition text-sm">{cat.name}</div>
-              <div className="text-xs text-muted mt-1">{products.filter(p => p.category === cat.name).length} Products</div>
+              <div className="font-extrabold text-dark group-hover:text-teal transition-colors text-base text-center line-clamp-1">{cat.name}</div>
+              <div className="text-xs text-muted mt-1 font-medium bg-neutral px-3 py-1 rounded-full group-hover:bg-teal group-hover:text-white transition-all">Explore Collections</div>
             </Link>
           ))}
         </div>
@@ -273,40 +364,120 @@ export default function Home() {
           </Link>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {featured.map(p => <ProductCard key={p.id} product={p} />)}
+          {featuredProducts.map(p => <ProductCard key={p.id} product={p} />)}
         </div>
       </section>
 
-      {/* ── Promo Banner ── */}
+      {/* ── Dynamic Combined Promo Banners ── */}
       <section className="max-w-7xl mx-auto px-4 pb-12">
-        <div className="bg-gradient-to-r from-teal to-teal-light rounded-3xl px-8 py-12 text-white relative overflow-hidden">
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-0 right-0 w-72 h-72 bg-accent/20 rounded-full blur-3xl" />
-            <div className="absolute bottom-0 right-32 w-48 h-48 bg-coral/20 rounded-full blur-3xl" />
-          </div>
-          <div className="relative flex flex-col md:flex-row items-center justify-between gap-8">
-            <div className="max-w-lg">
-              <div className="text-accent font-bold text-sm uppercase tracking-widest mb-3">Limited Time Offer</div>
-              <h2 className="text-3xl md:text-4xl font-extrabold mb-3">Get 20% Off<br />Your First Order!</h2>
-              <p className="text-white/75 mb-6">
-                Use code{' '}
-                <span className="bg-white/20 px-3 py-1 rounded-lg font-mono font-bold text-white border border-white/30">SPARROW20</span>
-                {' '}at checkout
-              </p>
-              <Link to="/products" className="bg-coral hover:bg-coral-dark text-white font-bold px-8 py-3.5 rounded-xl transition inline-flex items-center gap-2 shadow-lg shadow-coral/30">
-                Claim Offer <FiArrowRight />
-              </Link>
-            </div>
-            <div className="grid grid-cols-2 gap-3 shrink-0">
-              {[['Free', 'Shipping'], ['30-Day', 'Returns'], ['24/7', 'Support'], ['100%', 'Secure']].map(([v, l]) => (
-                <div key={l} className="bg-white/10 backdrop-blur-sm rounded-2xl px-5 py-4 text-center border border-white/20">
-                  <div className="text-xl font-extrabold text-accent">{v}</div>
-                  <div className="text-xs text-white/70 mt-0.5">{l}</div>
+        {offerImages.length > 0 ? (
+          <div className="flex flex-col gap-8">
+            {/* Main Combined Banner - Split Layout */}
+            {offerImages.slice(0, 1).map((img) => {
+              const mainText = offerTexts[0]?.text || 'Next-Gen Electronics Sale';
+              return (
+                <div key={img.id} className="relative group overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#0F3D3E] to-[#1a5557] min-h-[400px] flex items-center shadow-2xl border border-white/5">
+                  {/* Subtle Background pattern/glow */}
+                  <div className="absolute top-0 right-0 w-1/2 h-full bg-accent/10 blur-[100px] rounded-full transform translate-x-1/2" />
+                  
+                  <div className="relative w-full h-full flex flex-col md:flex-row items-center px-8 md:px-16 py-12 gap-12">
+                    {/* Left Side: Text Content */}
+                    <div className="w-full md:w-1/2 text-left z-10 order-2 md:order-1">
+                      <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full text-[10px] font-bold text-accent mb-6 border border-white/10 tracking-widest uppercase">
+                        <FiZap className="animate-pulse" /> Limited Edition Deal
+                      </div>
+                      <h2 className="text-3xl md:text-5xl font-extrabold text-white leading-[1.1] mb-6 drop-shadow-sm">
+                        {mainText}
+                      </h2>
+                      <div className="flex flex-col sm:flex-row gap-5 items-center">
+                        <Link 
+                          to="/products" 
+                          className="w-full sm:w-auto bg-coral hover:bg-coral-dark text-white font-bold px-10 py-4 rounded-2xl transition-all hover:scale-105 shadow-xl shadow-coral/30 flex items-center justify-center gap-2"
+                        >
+                          Shop Now <FiArrowRight />
+                        </Link>
+                        <div className="flex gap-4">
+                          {[
+                            {v: 'Free', l: 'Shipping'},
+                            {v: '24/7', l: 'Chat'}
+                          ].map((s, i) => (
+                            <div key={i} className="flex flex-col items-center">
+                              <span className="text-accent font-bold text-lg leading-none">{s.v}</span>
+                              <span className="text-white/40 text-[9px] uppercase tracking-tighter">{s.l}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right Side: Full Image - Enlarged */}
+                    <div className="w-full md:w-1/2 h-[350px] md:h-[500px] relative z-0 order-1 md:order-2 flex items-center justify-center">
+                      <div className="absolute inset-0 bg-accent/20 rounded-full blur-[100px] opacity-40 animate-pulse" />
+                      <img 
+                        src={img.image} 
+                        alt="Promo Product" 
+                        className="relative max-w-full max-h-full object-contain scale-110 md:scale-125 transform group-hover:scale-[1.35] group-hover:-rotate-3 transition-transform duration-1000 drop-shadow-[0_30px_60px_rgba(0,0,0,0.6)]"
+                      />
+                    </div>
+                  </div>
                 </div>
-              ))}
+              );
+            })}
+
+            {/* Sub Banners if more exist */}
+            {offerImages.length > 1 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {offerImages.slice(1, 3).map((img, idx) => {
+                  const subText = offerTexts[idx + 1]?.text || 'More Tech Deals';
+                  return (
+                    <div key={img.id} className="relative group overflow-hidden rounded-[2rem] aspect-[21/9] shadow-xl border border-border/50">
+                      <img 
+                        src={img.image} 
+                        alt="Sub Offer" 
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                      <div className="relative h-full flex flex-col justify-end p-8">
+                        <h3 className="text-xl md:text-2xl font-bold text-white mb-4 line-clamp-2">
+                          {subText}
+                        </h3>
+                        <Link 
+                          to="/products"
+                          className="bg-white text-dark font-bold px-6 py-2.5 rounded-xl text-sm w-fit transition-all hover:bg-teal hover:text-white"
+                        >
+                          Grab Deal
+                        </Link>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Fallback Banner */
+          <div className="bg-gradient-to-r from-teal to-teal-light rounded-[2.5rem] px-8 py-16 text-white relative overflow-hidden shadow-2xl">
+            <div className="absolute inset-0 pointer-events-none opacity-50">
+              <div className="absolute top-0 right-0 w-96 h-96 bg-accent/20 rounded-full blur-[100px]" />
+              <div className="absolute bottom-0 left-0 w-72 h-72 bg-coral/20 rounded-full blur-[100px]" />
+            </div>
+            <div className="relative flex flex-col md:flex-row items-center justify-between gap-12">
+              <div className="max-w-2xl">
+                <div className="text-accent font-bold text-sm uppercase tracking-[0.2em] mb-4">Summer 2024 Collection</div>
+                <h2 className="text-4xl md:text-5xl font-extrabold mb-6 leading-tight">Next-Generation Tech<br />Available Now.</h2>
+                <p className="text-white/70 text-lg mb-8 max-w-lg leading-relaxed">Experience the future of electronics with our latest arrivals. Free nationwide shipping on all major gadgets.</p>
+                <Link to="/products" className="bg-white text-teal font-extrabold px-10 py-4 rounded-2xl transition-all hover:scale-105 shadow-2xl flex items-center gap-2 w-fit">
+                  SHOP ALL PRODUCTS <FiArrowRight />
+                </Link>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                {[...Array(4)].map((_, i) => (
+                   <div key={i} className="w-24 h-24 rounded-3xl bg-white/10 backdrop-blur-md border border-white/20" />
+                ))}
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </section>
 
       {/* ── New Arrivals ── */}
@@ -369,3 +540,5 @@ export default function Home() {
     </div>
   )
 }
+
+export default Home;

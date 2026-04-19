@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
-import { products } from '../data/products'
+import { useSearchParams, Link } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
 import { FiGrid, FiList, FiFilter, FiX } from 'react-icons/fi'
 import { useCart } from '../context/CartContext'
+import { getProducts, getCategories } from '../api/api'
+import { mapProduct, mapCategory } from '../utils/dataMapper'
 
-const categories = ['All', 'Electronics', 'Fashion', 'Sports', 'Home']
 const priceRanges = [
   { label: 'Under ₹500', min: 0, max: 500 },
   { label: '₹500 – ₹1,000', min: 500, max: 1000 },
@@ -26,15 +26,40 @@ export default function Products() {
   const searchQuery = searchParams.get('search') || ''
   const badgeFilter = searchParams.get('badge') || ''
 
+  const [allProducts, setAllProducts] = useState([])
+  const [categories, setCategories] = useState(['All'])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    const loadProductsData = async () => {
+      try {
+        setLoading(true)
+        const [productsData, categoriesData] = await Promise.all([
+          getProducts(),
+          getCategories()
+        ])
+        
+        setAllProducts(productsData.products.map(mapProduct))
+        setCategories(['All', ...categoriesData.categories.map(c => c.title)])
+        setLoading(false)
+      } catch (err) {
+        console.error('Failed to load products:', err)
+        setError('Failed to load products from server.')
+        setLoading(false)
+      }
+    }
+    loadProductsData()
+  }, [])
+
   useEffect(() => {
     const cat = searchParams.get('category')
     const s = searchParams.get('sort')
-    const badge = searchParams.get('badge')
     setSelectedCat(cat || 'All')
     setSort(s || 'default')
   }, [searchParams])
 
-  let filtered = products
+  let filtered = allProducts
   if (selectedCat !== 'All') filtered = filtered.filter(p => p.category === selectedCat)
   if (searchQuery) filtered = filtered.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
   if (badgeFilter) filtered = filtered.filter(p => p.badge === badgeFilter)
@@ -82,7 +107,7 @@ export default function Products() {
                 {cat}
               </span>
               <span className="ml-auto text-xs text-muted">
-                {cat === 'All' ? products.length : products.filter(p => p.category === cat).length}
+                {cat === 'All' ? allProducts.length : allProducts.filter(p => p.category === cat).length}
               </span>
             </label>
           ))}
@@ -131,6 +156,14 @@ export default function Products() {
       </div>
     </div>
   )
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-neutral">
+        <div className="w-10 h-10 border-4 border-teal border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    )
+  }
 
   return (
     <div className="bg-neutral min-h-screen">

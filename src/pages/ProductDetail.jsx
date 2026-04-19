@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { products } from '../data/products'
 import ProductCard from '../components/ProductCard'
 import { FiCheckCircle, FiRefreshCw, FiShield, FiTruck, FiChevronRight, FiStar, FiPackage } from 'react-icons/fi'
 import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa'
+import { getProductById, getProducts } from '../api/api'
+import { mapProduct } from '../utils/dataMapper'
 
 const mockReviews = [
   { name: 'Amit K.', rating: 5, date: 'Jun 10, 2025', text: 'Absolutely love this product! Build quality is top-notch and delivery was super fast. Highly recommend to everyone.', verified: true },
@@ -14,10 +15,45 @@ const mockReviews = [
 
 export default function ProductDetail() {
   const { id } = useParams()
-  const product = products.find(p => p.id === Number(id))
-  const related = products.filter(p => p.category === product?.category && p.id !== product?.id).slice(0, 4)
+  const [product, setProduct] = useState(null)
+  const [related, setRelated] = useState([])
+  const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('description')
-  useEffect(() => { window.scrollTo(0, 0) }, [id])
+
+  useEffect(() => {
+    const loadProduct = async () => {
+      try {
+        setLoading(true)
+        const data = await getProductById(id)
+        if (data.product) {
+          const mapped = mapProduct(data.product)
+          setProduct(mapped)
+          
+          // Fetch related products
+          const allProducts = await getProducts()
+          const mappedRelated = allProducts.products
+            .map(mapProduct)
+            .filter(p => p.category === mapped.category && p.id !== mapped.id)
+            .slice(0, 4)
+          setRelated(mappedRelated)
+        }
+        setLoading(false)
+      } catch (err) {
+        console.error('Error loading product:', err)
+        setLoading(false)
+      }
+    }
+    loadProduct()
+    window.scrollTo(0, 0)
+  }, [id])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-neutral">
+        <div className="w-10 h-10 border-4 border-teal border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    )
+  }
 
   if (!product) return (
     <div className="text-center py-20 text-muted">
