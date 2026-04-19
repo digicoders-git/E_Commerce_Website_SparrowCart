@@ -1,35 +1,91 @@
 import { Link } from 'react-router-dom'
+import { FiMail, FiPhone, FiMapPin, FiInstagram, FiTwitter, FiFacebook, FiYoutube } from 'react-icons/fi'
 
 export default function Footer() {
   return (
     <footer className="bg-teal text-white mt-auto">
-      <div className="max-w-7xl mx-auto px-4 py-10 grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="max-w-7xl mx-auto px-4 py-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+
+        {/* Brand */}
         <div>
-          <div className="flex items-center gap-2 mb-3">
-            <img src="/logo.png" alt="logo" className="w-9 h-9 rounded-full object-cover border-2 border-accent" />
+          <div className="flex items-center gap-2 mb-4">
+            <img src="/logo.png" alt="logo" className="w-10 h-10 rounded-full object-cover border-2 border-accent shadow" />
             <span className="text-xl font-bold">Sparrow<span className="text-accent">Cart</span></span>
           </div>
-          <p className="text-sm text-gray-300">Your one-stop shop for everything you love. Quality products, great prices.</p>
+          <p className="text-sm text-white/60 leading-relaxed mb-5">
+            Your one-stop shop for everything you love. Quality products, great prices, delivered fast.
+          </p>
+          <div className="flex gap-3">
+            {[FiInstagram, FiFacebook, FiTwitter, FiYoutube].map((Icon, i) => (
+              <a key={i} href="#" className="w-9 h-9 bg-white/10 hover:bg-accent rounded-xl flex items-center justify-center transition">
+                <Icon size={16} />
+              </a>
+            ))}
+          </div>
         </div>
+
+        {/* Quick Links */}
         <div>
-          <h4 className="font-semibold mb-3 text-accent">Quick Links</h4>
-          <ul className="space-y-2 text-sm text-gray-300">
-            <li><Link to="/" className="hover:text-white transition">Home</Link></li>
-            <li><Link to="/products" className="hover:text-white transition">Products</Link></li>
-            <li><Link to="/cart" className="hover:text-white transition">Cart</Link></li>
+          <h4 className="font-bold mb-4 text-white">Quick Links</h4>
+          <ul className="space-y-2.5 text-sm text-white/60">
+            {[['Home', '/'], ['Products', '/products'], ['Cart', '/cart'], ['Wishlist', '/wishlist'], ['Checkout', '/checkout']].map(([label, path]) => (
+              <li key={label}>
+                <Link to={path} className="hover:text-accent transition flex items-center gap-1.5">
+                  <span className="text-accent text-xs">›</span> {label}
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
+
+        {/* Categories */}
         <div>
-          <h4 className="font-semibold mb-3 text-accent">Contact</h4>
-          <ul className="space-y-2 text-sm text-gray-300">
-            <li>📧 support@sparrowcart.com</li>
-            <li>📞 +91 98765 43210</li>
-            <li>📍 Mumbai, India</li>
+          <h4 className="font-bold mb-4 text-white">Categories</h4>
+          <ul className="space-y-2.5 text-sm text-white/60">
+            {['Electronics', 'Fashion', 'Sports', 'Home'].map(cat => (
+              <li key={cat}>
+                <Link to={`/products?category=${cat}`} className="hover:text-accent transition flex items-center gap-1.5">
+                  <span className="text-accent text-xs">›</span> {cat}
+                </Link>
+              </li>
+            ))}
           </ul>
+        </div>
+
+        {/* Contact */}
+        <div>
+          <h4 className="font-bold mb-4 text-white">Contact Us</h4>
+          <ul className="space-y-3 text-sm text-white/60">
+            <li className="flex items-start gap-3">
+              <FiMail size={15} className="text-accent mt-0.5 shrink-0" />
+              <span>support@sparrowcart.com</span>
+            </li>
+            <li className="flex items-center gap-3">
+              <FiPhone size={15} className="text-accent shrink-0" />
+              <span>+91 98765 43210</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <FiMapPin size={15} className="text-accent mt-0.5 shrink-0" />
+              <span>Mumbai, Maharashtra, India</span>
+            </li>
+          </ul>
+          <div className="mt-5 bg-white/10 rounded-xl px-4 py-3 text-xs text-white/60">
+            <p className="font-semibold text-white mb-1">Business Hours</p>
+            <p>Mon – Sat: 9:00 AM – 6:00 PM</p>
+          </div>
         </div>
       </div>
-      <div className="border-t border-white/10 text-center py-4 text-xs text-gray-400">
-        © 2025 SparrowCart. All rights reserved.
+
+      {/* Bottom */}
+      <div className="border-t border-white/10">
+        <div className="max-w-7xl mx-auto px-4 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/40">
+          <p>© 2025 SparrowCart. All rights reserved.</p>
+          <div className="flex gap-4">
+            <a href="#" className="hover:text-white transition">Privacy Policy</a>
+            <a href="#" className="hover:text-white transition">Terms of Service</a>
+            <a href="#" className="hover:text-white transition">Refund Policy</a>
+          </div>
+        </div>
       </div>
     </footer>
   )
