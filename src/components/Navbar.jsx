@@ -98,13 +98,9 @@ export default function Navbar() {
         {/* Main Bar */}
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
 
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5 shrink-0">
-            <img src="/logo.png" alt="logo" className="w-14 h-14 rounded-xl object-cover shadow-lg" />
-            <div className="hidden sm:flex flex-col leading-none">
-              <span className="text-xl font-black tracking-tight">Sparrow<span className="text-accent">Cart</span></span>
-              <span className="text-white/50 text-[10px] font-medium tracking-widest uppercase">Shop Smart</span>
-            </div>
+          <Link to="/" className="flex items-center gap-2 shrink-0">
+            <img src="/logo.png" alt="logo" className="w-14 h-14 rounded-full object-cover shadow-lg" />
+            <span className="text-xl font-bold hidden sm:block">Sparrow<span className="text-accent">Cart</span></span>
           </Link>
 
           {/* Category Dropdown */}
