@@ -66,7 +66,7 @@ export default function Footer() {
       <div className="border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/40">
           <p>© 2025 SparrowCart. All rights reserved.</p>
-          <p className="text-white/30">Crafted with <span className="text-red-400">♥</span> by <a href="https://thedigicoders.com/" target="_blank" rel="noopener noreferrer" className="text-accent hover:text-white transition font-medium">DigiCoders</a></p>
+          <p className="text-white/30">Crafted with <span className="text-red-400">♥</span> by <a href="https://digicoders.in/" target="_blank" rel="noopener noreferrer" className="text-accent hover:text-white transition font-medium">DigiCoders</a></p>
           <div className="flex gap-4">
             <Link to="/privacy-policy" className="hover:text-white transition">Privacy Policy</Link>
             <Link to="/terms-of-service" className="hover:text-white transition">Terms of Service</Link>
