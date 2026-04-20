@@ -103,38 +103,76 @@ const Home = () => {
   const [error, setError] = useState(null)
   const navigate = useNavigate()
 
+  const defaultSlides = [
+    {
+      id: 'default-1',
+      tag: 'Coming Soon',
+      title: 'Amazing Deals Await',
+      subtitle: 'Stay Tuned',
+      desc: 'We are preparing something special for you. Check back soon for the latest electronics and fashion.',
+      cta: 'Explore Products',
+      ctaLink: '/products',
+      bg: 'from-[#0F3D3E] to-[#1a5557]',
+      accent: '#1FB6C9',
+      image: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=600&q=80',
+      badge: { text: 'COMING SOON', sub: 'New Store' },
+    }
+  ]
+
   useEffect(() => {
     const loadHomeData = async () => {
       try {
         setLoading(true)
-        const [slidersData, categoriesData, productsData, offerImagesData, offerTextsData] = await Promise.all([
-          getSliders(),
-          getCategories(),
-          getProducts(),
-          getOfferImages(),
-          getOfferTexts()
+        
+        // Use individual try-catch to ensure one failure doesn't block the rest
+        const safeFetch = async (fn, defaultVal = {}) => {
+          try { return await fn(); } catch (e) { console.error(e); return defaultVal; }
+        };
+
+        const [
+          slidersData, 
+          categoriesData, 
+          productsData, 
+          offerImagesData, 
+          offerTextsData
+        ] = await Promise.all([
+          safeFetch(getSliders, { sliders: [] }),
+          safeFetch(getCategories, { categories: [] }),
+          safeFetch(getProducts, { products: [] }),
+          safeFetch(getOfferImages, { offerImages: [] }),
+          safeFetch(getOfferTexts, { offerTexts: [] })
         ])
 
+        // 1. Process Sliders
         if (slidersData.sliders && slidersData.sliders.length > 0) {
           setSlides(slidersData.sliders.map(mapSlider))
         } else {
-          // Fallback slides if none in backend
-          setSlides([ /* default slides could go here if needed */ ])
+          setSlides(defaultSlides)
         }
 
-        setCategories(categoriesData.categories.map(mapCategory))
+        // 2. Process Categories
+        if (categoriesData.categories && categoriesData.categories.length > 0) {
+          setCategories(categoriesData.categories.map(mapCategory))
+        }
+
+        // 3. Process Products
+        if (productsData.products && productsData.products.length > 0) {
+          const mappedProducts = productsData.products.map(mapProduct)
+          setFeaturedProducts(mappedProducts.filter(p => p.badge).slice(0, 8))
+          setNewArrivals(mappedProducts.slice(0, 4))
+        }
         
-        const mappedProducts = productsData.products.map(mapProduct)
-        setFeaturedProducts(mappedProducts.filter(p => p.badge).slice(0, 8))
-        setNewArrivals(mappedProducts.slice(0, 4)) // Fix: slice(0, 4) for newest first
-        
+        // 4. Process Offers
         setOfferImages(offerImagesData.offerImages?.map(mapOfferImage) || [])
         setOfferTexts(offerTextsData.offerTexts?.map(mapOfferText) || [])
         
         setLoading(false)
       } catch (err) {
-        console.error('Failed to load home data:', err)
-        setError('Failed to connect to backend server.')
+        console.error('Critical failure loading home data:', err)
+        // Only set error if everything failed catastrophically
+        if (featuredProducts.length === 0 && categories.length === 0) {
+          setError('Failed to connect to backend server.')
+        }
         setLoading(false)
       }
     }
@@ -165,13 +203,13 @@ const Home = () => {
     )
   }
 
-  if (error || !s) {
+  if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-neutral p-4">
         <div className="bg-white rounded-3xl p-8 shadow-xl max-w-md text-center border border-border">
           <FiZap className="mx-auto text-coral mb-4" size={48} />
           <h2 className="text-2xl font-bold text-dark mb-2">Oops! Something went wrong</h2>
-          <p className="text-muted mb-6">{error || 'No content found in backend. Please add slides/products in admin panel.'}</p>
+          <p className="text-muted mb-6">{error}</p>
           <button onClick={() => window.location.reload()} className="bg-teal text-white px-8 py-3 rounded-xl font-bold hover:bg-teal-light transition shadow-lg shadow-teal/20">
             Try Again
           </button>
