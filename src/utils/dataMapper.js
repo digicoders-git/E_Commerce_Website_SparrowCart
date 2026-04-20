@@ -12,8 +12,8 @@ export const mapProduct = (backendProduct) => {
     category: backendProduct.category?.title || 'General',
     categoryId: backendProduct.category?._id || backendProduct.category,
     badge: backendProduct.percentageOff > 0 ? `${backendProduct.percentageOff}% OFF` : '',
-    rating: 4.5, // Mocked as backend doesn't have it yet
-    reviews: Math.floor(Math.random() * 100) + 10, // Mocked
+    rating: backendProduct.rating || 0,
+    reviews: backendProduct.numReviews || 0,
     stock: backendProduct.stockQuantity || 0,
     unit: backendProduct.unit || 'piece',
     isNewArrival: !!backendProduct.isNewArrival
