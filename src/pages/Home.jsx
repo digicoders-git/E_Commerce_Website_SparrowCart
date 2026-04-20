@@ -162,9 +162,9 @@ const Home = () => {
           
           const arrivalProducts = mappedProducts.filter(p => p.isNewArrival)
           if (arrivalProducts.length > 0) {
-            setNewArrivals(arrivalProducts.slice(0, 4))
+            setNewArrivals(arrivalProducts.slice(0, 10))
           } else {
-            setNewArrivals(mappedProducts.slice(0, 4))
+            setNewArrivals(mappedProducts.slice(0, 10))
           }
         }
         

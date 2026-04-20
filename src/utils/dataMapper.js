@@ -16,7 +16,7 @@ export const mapProduct = (backendProduct) => {
     reviews: Math.floor(Math.random() * 100) + 10, // Mocked
     stock: backendProduct.stockQuantity || 0,
     unit: backendProduct.unit || 'piece',
-    isNewArrival: backendProduct.isNewArrival || false
+    isNewArrival: !!backendProduct.isNewArrival
   };
 };
 
