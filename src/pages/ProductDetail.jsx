@@ -3,51 +3,88 @@ import { useParams, Link } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
 import { FiCheckCircle, FiRefreshCw, FiShield, FiTruck, FiChevronRight, FiStar, FiPackage } from 'react-icons/fi'
 import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa'
-import { getProductById, getProducts } from '../api/api'
+import { getProductById, getProducts, getApprovedReviewsByProduct, postReview } from '../api/api'
 import { mapProduct } from '../utils/dataMapper'
+import { useAuth } from '../context/AuthContext'
+import { toast } from 'sonner'
 
-const mockReviews = [
-  { name: 'Amit K.', rating: 5, date: 'Jun 10, 2025', text: 'Absolutely love this product! Build quality is top-notch and delivery was super fast. Highly recommend to everyone.', verified: true },
-  { name: 'Sneha R.', rating: 4, date: 'May 28, 2025', text: 'Great value for money. Works exactly as described. Packaging was also very good. Will buy again.', verified: true },
-  { name: 'Rohit M.', rating: 5, date: 'May 15, 2025', text: 'Exceeded my expectations! The quality is premium and it looks even better in person. Very happy with this purchase.', verified: true },
-  { name: 'Priya S.', rating: 4, date: 'Apr 30, 2025', text: 'Good product overall. Delivery was on time. Minor issue with packaging but the product itself is perfect.', verified: false },
-]
 
 export default function ProductDetail() {
   const { id } = useParams()
+  const { user } = useAuth()
   const [product, setProduct] = useState(null)
+  const [reviews, setReviews] = useState([])
   const [related, setRelated] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('description')
   const [selectedImage, setSelectedImage] = useState('')
+  
+  // Review form state
+  const [formName, setFormName] = useState(user?.name || '')
+  const [formRating, setFormRating] = useState(5)
+  const [formComment, setFormComment] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
-    const loadProduct = async () => {
+    const loadProductAndReviews = async () => {
       try {
         setLoading(true)
-        const data = await getProductById(id)
-        if (data.product) {
-          const mapped = mapProduct(data.product)
+        const [prodData, reviewsData] = await Promise.all([
+          getProductById(id),
+          getApprovedReviewsByProduct(id)
+        ])
+
+        if (prodData.product) {
+          const mapped = mapProduct(prodData.product)
           setProduct(mapped)
           setSelectedImage(mapped.image)
-          
+          setReviews(reviewsData.reviews || [])
+
           // Fetch related products
           const allProducts = await getProducts()
-          const mappedRelated = allProducts.products
-            .map(mapProduct)
-            .filter(p => p.category === mapped.category && p.id !== mapped.id)
-            .slice(0, 4)
-          setRelated(mappedRelated)
+          if (allProducts.products) {
+            const mappedRelated = allProducts.products
+              .map(mapProduct)
+              .filter(p => p.category === mapped.category && p.id !== mapped.id)
+              .slice(0, 4)
+            setRelated(mappedRelated)
+          }
         }
         setLoading(false)
       } catch (err) {
-        console.error('Error loading product:', err)
+        console.error('Error loading product data:', err)
         setLoading(false)
       }
     }
-    loadProduct()
+    loadProductAndReviews()
     window.scrollTo(0, 0)
-  }, [id])
+    if (user) setFormName(user.name || '')
+  }, [id, user])
+
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault()
+    if (!formName.trim() || !formComment.trim()) return toast.error('Please fill all fields')
+    
+    try {
+      setSubmitting(true)
+      const res = await postReview({
+        productId: id,
+        userId: user?.id,
+        userName: formName,
+        rating: formRating,
+        comment: formComment
+      })
+      if (res.review) {
+        toast.success('Review submitted! It will appear after approval')
+        setFormComment('')
+        setFormRating(5)
+      }
+    } catch (err) {
+      toast.error('Failed to submit review')
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -72,11 +109,6 @@ export default function ProductDetail() {
     return <FaRegStar key={i} className="text-gray-300" size={15} />
   })
 
-  const ratingBars = [5, 4, 3, 2, 1].map(r => ({
-    star: r,
-    count: mockReviews.filter(rv => Math.round(rv.rating) === r).length,
-    pct: Math.round((mockReviews.filter(rv => Math.round(rv.rating) === r).length / mockReviews.length) * 100)
-  }))
 
   return (
     <div className="bg-neutral min-h-screen">
@@ -114,8 +146,8 @@ export default function ProductDetail() {
             {/* Thumbnails */}
             <div className="flex gap-3 mt-4 overflow-x-auto pb-2 scrollbar-hide">
               {product.images?.map((img, i) => (
-                <div 
-                  key={i} 
+                <div
+                  key={i}
                   onClick={() => setSelectedImage(img)}
                   className={`w-20 h-20 rounded-2xl overflow-hidden border-2 cursor-pointer transition-all shrink-0 shadow-sm ${selectedImage === img ? 'border-teal ring-2 ring-teal/20 scale-95' : 'border-transparent hover:border-teal/50'}`}
                 >
@@ -135,8 +167,8 @@ export default function ProductDetail() {
             {/* Rating */}
             <div className="flex items-center gap-3 flex-wrap">
               <div className="flex items-center gap-1">{stars(product.rating)}</div>
-              <span className="font-bold text-dark text-sm">{product.rating}</span>
-              <span className="text-muted text-sm">({product.reviews} reviews)</span>
+              <span className="font-bold text-dark text-sm">{product.rating || '4.5'}</span>
+              <span className="text-muted text-sm">({reviews.length || product.reviews} reviews)</span>
               <span className="text-green-600 text-xs font-semibold bg-green-50 px-2 py-0.5 rounded-full">In Stock</span>
             </div>
 
@@ -190,9 +222,9 @@ export default function ProductDetail() {
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`px-6 py-4 text-sm font-semibold capitalize whitespace-nowrap transition ${activeTab === tab ? 'text-teal border-b-2 border-teal bg-teal/5' : 'text-muted hover:text-dark'}`}
-              >
-                {tab === 'reviews' ? `Reviews (${mockReviews.length})` : tab}
-              </button>
+               >
+                 {tab === 'reviews' ? `Reviews (${reviews.length})` : tab}
+               </button>
             ))}
           </div>
 
@@ -233,48 +265,107 @@ export default function ProductDetail() {
                 {/* Rating summary */}
                 <div className="lg:w-56 shrink-0">
                   <div className="text-center mb-4">
-                    <div className="text-6xl font-extrabold text-dark">{product.rating}</div>
-                    <div className="flex justify-center gap-1 my-2">{stars(product.rating)}</div>
-                    <p className="text-muted text-sm">{product.reviews} reviews</p>
+                    <div className="text-6xl font-extrabold text-dark">{product.rating || 4.5}</div>
+                    <div className="flex justify-center gap-1 my-2">{stars(product.rating || 4.5)}</div>
+                    <p className="text-muted text-sm">{reviews.length} approved reviews</p>
                   </div>
                   <div className="space-y-2">
-                    {ratingBars.map(r => (
-                      <div key={r.star} className="flex items-center gap-2 text-xs">
-                        <span className="text-muted w-3">{r.star}</span>
-                        <FiStar size={10} className="text-yellow-400" />
-                        <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                          <div className="h-full bg-yellow-400 rounded-full" style={{ width: `${r.pct}%` }} />
+                    {[5, 4, 3, 2, 1].map(r => {
+                      const count = reviews.filter(rv => Math.round(rv.rating) === r).length;
+                      const pct = reviews.length > 0 ? Math.round((count / reviews.length) * 100) : 0;
+                      return (
+                        <div key={r} className="flex items-center gap-2 text-xs">
+                          <span className="text-muted w-3">{r}</span>
+                          <FiStar size={10} className="text-yellow-400" />
+                          <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                            <div className="h-full bg-yellow-400 rounded-full" style={{ width: `${pct}%` }} />
+                          </div>
+                          <span className="text-muted w-6 text-right">{count}</span>
                         </div>
-                        <span className="text-muted w-6 text-right">{r.count}</span>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 </div>
 
                 {/* Review list */}
-                <div className="flex-1 space-y-4">
-                  {mockReviews.map((r, i) => (
-                    <div key={i} className="bg-neutral rounded-2xl p-5 border border-border">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 bg-teal text-white rounded-full flex items-center justify-center font-bold text-sm shrink-0">
-                            {r.name[0]}
-                          </div>
-                          <div>
-                            <p className="font-semibold text-dark text-sm">{r.name}</p>
-                            <p className="text-muted text-xs">{r.date}</p>
+                <div className="flex-1 space-y-6">
+                  {/* Write a Review Form */}
+                  <div className="bg-neutral rounded-3xl p-6 border border-border">
+                    <h3 className="font-bold text-dark mb-4 text-base">Write a Review</h3>
+                    <form onSubmit={handleReviewSubmit} className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-muted uppercase mb-1.5 ml-1">Your Name</label>
+                          <input 
+                            value={formName} 
+                            onChange={e => setFormName(e.target.value)}
+                            placeholder="Full Name"
+                            className="w-full px-4 py-2.5 rounded-xl border border-border focus:border-teal outline-none text-sm transition shadow-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-muted uppercase mb-1.5 ml-1">Rating</label>
+                          <div className="flex items-center gap-2 h-[42px] px-4 bg-white rounded-xl border border-border shadow-sm">
+                            {[1, 2, 3, 4, 5].map(star => (
+                              <button
+                                key={star}
+                                type="button"
+                                onClick={() => setFormRating(star)}
+                                className="transition-transform hover:scale-110"
+                              >
+                                <FaStar size={18} className={star <= formRating ? 'text-yellow-400' : 'text-gray-200'} />
+                              </button>
+                            ))}
                           </div>
                         </div>
-                        <div className="flex items-center gap-1">{stars(r.rating)}</div>
                       </div>
-                      <p className="text-dark text-sm leading-relaxed">{r.text}</p>
-                      {r.verified && (
-                        <div className="flex items-center gap-1 mt-2 text-xs text-green-600">
-                          <FiCheckCircle size={11} /> Verified Purchase
-                        </div>
-                      )}
+                      <div>
+                        <label className="block text-xs font-bold text-muted uppercase mb-1.5 ml-1">Your Feedback</label>
+                        <textarea 
+                          value={formComment}
+                          onChange={e => setFormComment(e.target.value)}
+                          placeholder="Tell us what you like or dislike about this product..."
+                          rows={3}
+                          className="w-full px-4 py-3 rounded-xl border border-border focus:border-teal outline-none text-sm transition shadow-sm resize-none"
+                        />
+                      </div>
+                      <button 
+                        type="submit"
+                        disabled={submitting}
+                        className="bg-dark hover:bg-teal text-white font-bold px-8 py-3 rounded-xl transition shadow-lg shadow-dark/10 disabled:opacity-50"
+                      >
+                        {submitting ? 'Submitting...' : 'Submit Review'}
+                      </button>
+                    </form>
+                  </div>
+
+                  {/* Approved Reviews List */}
+                  {reviews.length === 0 ? (
+                    <div className="text-center py-10 opacity-50 italic">
+                      No approved reviews yet. Be the first to review!
                     </div>
-                  ))}
+                  ) : (
+                    reviews.map((r) => (
+                      <div key={r._id} className="bg-white rounded-2xl p-6 border border-border shadow-sm transition-all hover:shadow-md">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-neutral text-teal rounded-xl flex items-center justify-center font-bold text-base shrink-0 border border-border shadow-sm">
+                              {r.userName[0]?.toUpperCase()}
+                            </div>
+                            <div>
+                              <p className="font-bold text-dark text-sm">{r.userName}</p>
+                              <p className="text-muted text-[10px] uppercase font-bold tracking-wider">{new Date(r.createdAt).toLocaleDateString()}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-0.5">{stars(r.rating)}</div>
+                        </div>
+                        <p className="text-dark text-sm leading-relaxed bg-neutral/50 p-4 rounded-xl italic font-medium">"{r.comment}"</p>
+                        <div className="flex items-center gap-1.5 mt-3 text-[10px] font-bold text-green-600 uppercase tracking-widest px-3 py-1 bg-green-50 w-fit rounded-full">
+                          <FiCheckCircle size={12} /> Verified Opinion
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             )}

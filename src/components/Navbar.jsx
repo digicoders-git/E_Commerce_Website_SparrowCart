@@ -7,6 +7,8 @@ import {
 } from 'react-icons/fi'
 import { MdFitnessCenter } from 'react-icons/md'
 import { FiMonitor, FiHome, FiShoppingBag } from 'react-icons/fi'
+import { getOfferTexts } from '../api/api'
+import { mapOfferText } from '../utils/dataMapper'
 
 const OFFERS = [
   'Free shipping on orders above ₹999',
@@ -35,6 +37,7 @@ export default function Navbar() {
   const [searchOpen, setSearchOpen] = useState(false)
   const [catOpen, setCatOpen] = useState(false)
   const [offerIdx, setOfferIdx] = useState(0)
+  const [dynamicOffers, setDynamicOffers] = useState([])
   const [scrolled, setScrolled] = useState(false)
   const [categories, setCategories] = useState([])
   const catRef = useRef(null)
@@ -44,9 +47,10 @@ export default function Navbar() {
 
   // Offer ticker rotation
   useEffect(() => {
-    const t = setInterval(() => setOfferIdx(i => (i + 1) % OFFERS.length), 3000)
+    const total = dynamicOffers.length > 0 ? dynamicOffers.length : 1;
+    const t = setInterval(() => setOfferIdx(i => (i + 1) % total), 4000)
     return () => clearInterval(t)
-  }, [])
+  }, [dynamicOffers])
 
   // Scroll shadow
   useEffect(() => {
@@ -85,6 +89,24 @@ export default function Navbar() {
     fetchCats()
   }, [])
 
+  // Fetch Offer Texts
+  useEffect(() => {
+    const fetchOffers = async () => {
+      try {
+        const data = await getOfferTexts()
+        if (data.offerTexts) {
+          const active = data.offerTexts
+            .map(mapOfferText)
+            .filter(o => o.isActive)
+          setDynamicOffers(active)
+        }
+      } catch (err) {
+        console.error('Navbar offer fetch failed:', err)
+      }
+    }
+    fetchOffers()
+  }, [])
+
   const handleSearch = (e) => {
     e.preventDefault()
     if (search.trim()) {
@@ -97,23 +119,25 @@ export default function Navbar() {
   return (
     <>
       {/* Offer Ticker */}
-      <div className="bg-teal-hover text-white text-xs py-2 px-4 text-center overflow-hidden relative">
+      <div className="bg-teal-hover text-white text-[10px] sm:text-xs py-2 px-4 text-center overflow-hidden relative">
         <div
           key={offerIdx}
-          className="animate-fade-in font-medium tracking-wide"
+          className="animate-fade-in font-medium tracking-wider uppercase h-4 flex items-center justify-center"
           style={{ animation: 'fadeSlideIn 0.5s ease' }}
         >
-          {OFFERS[offerIdx]}
+          {dynamicOffers.length > 0 ? dynamicOffers[offerIdx]?.text : 'Welcome to SparrowCart — Premium Shopping Experience'}
         </div>
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex gap-1">
-          {OFFERS.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setOfferIdx(i)}
-              className={`w-1.5 h-1.5 rounded-full transition-all ${i === offerIdx ? 'bg-accent w-3' : 'bg-white/30'}`}
-            />
-          ))}
-        </div>
+        {dynamicOffers.length > 1 && (
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 hidden sm:flex gap-1">
+            {dynamicOffers.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setOfferIdx(i)}
+                className={`w-1 h-1 rounded-full transition-all ${i === offerIdx ? 'bg-accent w-2.5' : 'bg-white/30'}`}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       <nav className={`bg-teal text-white sticky top-0 z-50 transition-shadow ${scrolled ? 'shadow-2xl' : 'shadow-lg'}`}>

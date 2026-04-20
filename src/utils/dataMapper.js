@@ -1,6 +1,6 @@
 export const mapProduct = (backendProduct) => {
   if (!backendProduct) return null;
-  
+
   return {
     id: backendProduct._id,
     name: backendProduct.name,
@@ -22,7 +22,7 @@ export const mapProduct = (backendProduct) => {
 
 export const mapCategory = (backendCategory) => {
   if (!backendCategory) return null;
-  
+
   return {
     id: backendCategory._id,
     name: backendCategory.title,
@@ -32,7 +32,7 @@ export const mapCategory = (backendCategory) => {
 
 export const mapSlider = (backendSlider) => {
   if (!backendSlider) return null;
-  
+
   return {
     id: backendSlider._id,
     title: backendSlider.title,

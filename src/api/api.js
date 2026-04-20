@@ -19,3 +19,15 @@ export const getSliders = () => fetchData('/sliders');
 export const getOfferImages = () => fetchData('/offer-images');
 export const getOfferTexts = () => fetchData('/offer-texts');
 export const getProductById = (id) => fetchData(`/products/${id}`);
+
+// Review API
+export const getApprovedReviewsByProduct = (productId) => fetchData(`/reviews/product/${productId}`);
+export const getAllApprovedReviews = () => fetchData('/reviews/approved');
+export const postReview = async (reviewData) => {
+  const response = await fetch(`${BASE_URL}/reviews`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(reviewData)
+  });
+  return await response.json();
+};

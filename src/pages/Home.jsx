@@ -6,7 +6,7 @@ import {
   FiStar, FiChevronLeft, FiChevronRight, FiMonitor, FiHome, FiShoppingBag, FiZap
 } from 'react-icons/fi'
 import { MdFitnessCenter } from 'react-icons/md'
-import { getProducts, getCategories, getSliders, getOfferImages, getOfferTexts } from '../api/api'
+import { getProducts, getCategories, getSliders, getOfferImages, getOfferTexts, getAllApprovedReviews } from '../api/api'
 import { mapProduct, mapCategory, mapSlider, mapOfferImage, mapOfferText } from '../utils/dataMapper'
 
 const slides = [
@@ -78,11 +78,7 @@ const features = [
   { icon: <FiHeadphones size={22} />, title: '24/7 Support', desc: 'Always here to help', color: 'text-coral bg-red-50' },
 ]
 
-const testimonials = [
-  { name: 'Priya Sharma', review: 'Amazing quality! Got my headphones in 2 days. Absolutely love SparrowCart!', rating: 5, avatar: 'PS', city: 'Mumbai' },
-  { name: 'Rahul Verma', review: 'Best prices in the market. The mechanical keyboard is exactly as described. Will shop again!', rating: 5, avatar: 'RV', city: 'Delhi' },
-  { name: 'Anita Singh', review: 'Super fast delivery and great packaging. The leather backpack is stunning!', rating: 4, avatar: 'AS', city: 'Bangalore' },
-]
+/* Testimonials handled dynamically now */
 
 const offerBanners = [
   { code: 'SPARROW20', off: '20% OFF', desc: 'On your first order', color: 'from-teal to-teal-light' },
@@ -99,6 +95,7 @@ const Home = () => {
   const [newArrivals, setNewArrivals] = useState([])
   const [offerImages, setOfferImages] = useState([])
   const [offerTexts, setOfferTexts] = useState([])
+  const [reviews, setReviews] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const navigate = useNavigate()
@@ -134,13 +131,15 @@ const Home = () => {
           categoriesData, 
           productsData, 
           offerImagesData, 
-          offerTextsData
+          offerTextsData,
+          reviewsData
         ] = await Promise.all([
           safeFetch(getSliders, { sliders: [] }),
           safeFetch(getCategories, { categories: [] }),
           safeFetch(getProducts, { products: [] }),
           safeFetch(getOfferImages, { offerImages: [] }),
-          safeFetch(getOfferTexts, { offerTexts: [] })
+          safeFetch(getOfferTexts, { offerTexts: [] }),
+          safeFetch(getAllApprovedReviews, { reviews: [] })
         ])
 
         // 1. Process Sliders
@@ -171,6 +170,7 @@ const Home = () => {
         // 4. Process Offers
         setOfferImages(offerImagesData.offerImages?.map(mapOfferImage) || [])
         setOfferTexts(offerTextsData.offerTexts?.map(mapOfferText) || [])
+        setReviews(reviewsData.reviews || [])
         
         setLoading(false)
       } catch (err) {
@@ -548,23 +548,29 @@ const Home = () => {
             <p className="text-muted text-sm mt-2">Trusted by 50,000+ happy shoppers across India</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {testimonials.map(t => (
-              <div key={t.name} className="bg-neutral rounded-2xl p-6 border border-border hover:shadow-md transition">
+            {reviews.length > 0 ? reviews.slice(0, 3).map((t, idx) => (
+              <div key={t._id} className="bg-neutral rounded-2xl p-6 border border-border hover:shadow-md transition">
                 <div className="flex gap-1 mb-3">
                   {Array.from({ length: 5 }, (_, i) => (
                     <FiStar key={i} size={14} className={i < t.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200'} />
                   ))}
                 </div>
-                <p className="text-dark text-sm leading-relaxed mb-4">"{t.review}"</p>
+                <p className="text-dark text-sm leading-relaxed mb-4">"{t.comment}"</p>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-teal text-white rounded-full flex items-center justify-center font-bold text-sm shrink-0">{t.avatar}</div>
+                  <div className="w-10 h-10 bg-teal text-white rounded-full flex items-center justify-center font-bold text-sm shrink-0">
+                    {t.userName[0]?.toUpperCase()}
+                  </div>
                   <div>
-                    <div className="font-semibold text-dark text-sm">{t.name}</div>
-                    <div className="text-xs text-muted">{t.city} · Verified Buyer</div>
+                    <div className="font-semibold text-dark text-sm">{t.userName}</div>
+                    <div className="text-xs text-muted">Verified Buyer</div>
                   </div>
                 </div>
               </div>
-            ))}
+            )) : (
+              <div className="col-span-1 md:col-span-3 text-center py-10 opacity-50 italic">
+                Our customers are sharing their experiences soon!
+              </div>
+            )}
           </div>
         </div>
       </section>
