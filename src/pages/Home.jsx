@@ -281,7 +281,7 @@ const Home = () => {
             <img
               src={s.image}
               alt={s.title}
-              className="w-full max-w-lg h-80 md:h-[420px] rounded-3xl object-cover shadow-2xl border border-white/10"
+              className="w-full max-w-lg h-80 md:h-[450px] object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.3)] transition-transform duration-700 hover:scale-105"
             />
           </div>
         </div>
