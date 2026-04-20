@@ -159,7 +159,13 @@ const Home = () => {
         if (productsData.products && productsData.products.length > 0) {
           const mappedProducts = productsData.products.map(mapProduct)
           setFeaturedProducts(mappedProducts.filter(p => p.badge).slice(0, 8))
-          setNewArrivals(mappedProducts.slice(0, 4))
+          
+          const arrivalProducts = mappedProducts.filter(p => p.isNewArrival)
+          if (arrivalProducts.length > 0) {
+            setNewArrivals(arrivalProducts.slice(0, 4))
+          } else {
+            setNewArrivals(mappedProducts.slice(0, 4))
+          }
         }
         
         // 4. Process Offers

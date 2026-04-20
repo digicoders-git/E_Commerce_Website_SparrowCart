@@ -27,7 +27,12 @@ export default function ProductCard({ product }) {
         </Link>
 
         {/* Badges */}
-        <div className="absolute top-3 left-3 flex flex-col gap-1">
+        <div className="absolute top-3 left-3 flex flex-col gap-1 z-10">
+          {product.isNewArrival && (
+            <span className="bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow animate-pulse">
+              NEW
+            </span>
+          )}
           {product.badge && (
             <span className="bg-coral text-white text-xs font-bold px-2 py-1 rounded-lg shadow">
               {product.badge}
