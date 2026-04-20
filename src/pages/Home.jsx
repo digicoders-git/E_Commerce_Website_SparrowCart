@@ -194,9 +194,17 @@ const Home = () => {
   }, [animating])
 
   const prev = () => goTo((slide - 1 + slides.length) % slides.length)
-  const next = useCallback(() => goTo((slide + 1) % slides.length), [slide, goTo])
+  const next = useCallback(() => goTo((slide + 1) % slides.length), [slide, slides.length, goTo])
 
-  const s = slides[slide]
+  // Auto-slide effect
+  useEffect(() => {
+    const timer = setInterval(() => {
+      next()
+    }, 5000)
+    return () => clearInterval(timer)
+  }, [next])
+
+  const s = slides[slide] || slides[0] || defaultSlides[0]
 
   if (loading) {
     return (
@@ -285,14 +293,6 @@ const Home = () => {
             />
           </div>
         </div>
-
-        {/* Slider Controls */}
-        <button onClick={prev} className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition z-10">
-          <FiChevronLeft size={20} />
-        </button>
-        <button onClick={next} className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition z-10">
-          <FiChevronRight size={20} />
-        </button>
 
         {/* Dots */}
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
