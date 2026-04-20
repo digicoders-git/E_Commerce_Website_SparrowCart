@@ -19,6 +19,7 @@ export default function ProductDetail() {
   const [related, setRelated] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('description')
+  const [selectedImage, setSelectedImage] = useState('')
 
   useEffect(() => {
     const loadProduct = async () => {
@@ -28,6 +29,7 @@ export default function ProductDetail() {
         if (data.product) {
           const mapped = mapProduct(data.product)
           setProduct(mapped)
+          setSelectedImage(mapped.image)
           
           // Fetch related products
           const allProducts = await getProducts()
@@ -96,8 +98,8 @@ export default function ProductDetail() {
 
           {/* Image */}
           <div className="flex-1">
-            <div className="relative rounded-2xl overflow-hidden bg-gray-50 aspect-square max-h-[440px]">
-              <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+            <div className="relative rounded-2xl overflow-hidden bg-gray-50 aspect-square max-h-[440px] group">
+              <img src={selectedImage} alt={product.name} className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110" />
               {discount > 0 && (
                 <span className="absolute top-4 left-4 bg-green-500 text-white font-bold text-sm px-3 py-1 rounded-xl shadow">
                   {discount}% OFF
@@ -109,11 +111,15 @@ export default function ProductDetail() {
                 </span>
               )}
             </div>
-            {/* Thumbnails placeholder */}
-            <div className="flex gap-2 mt-3">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="w-16 h-16 rounded-xl overflow-hidden border-2 border-border cursor-pointer hover:border-teal transition">
-                  <img src={product.image} alt="" className="w-full h-full object-cover" />
+            {/* Thumbnails */}
+            <div className="flex gap-3 mt-4 overflow-x-auto pb-2 scrollbar-hide">
+              {product.images?.map((img, i) => (
+                <div 
+                  key={i} 
+                  onClick={() => setSelectedImage(img)}
+                  className={`w-20 h-20 rounded-2xl overflow-hidden border-2 cursor-pointer transition-all shrink-0 shadow-sm ${selectedImage === img ? 'border-teal ring-2 ring-teal/20 scale-95' : 'border-transparent hover:border-teal/50'}`}
+                >
+                  <img src={img} alt={`View ${i + 1}`} className="w-full h-full object-cover" />
                 </div>
               ))}
             </div>

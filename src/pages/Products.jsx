@@ -25,6 +25,7 @@ export default function Products() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const searchQuery = searchParams.get('search') || ''
   const badgeFilter = searchParams.get('badge') || ''
+  const newArrivalFilter = searchParams.get('newArrival') === 'true'
 
   const [allProducts, setAllProducts] = useState([])
   const [categories, setCategories] = useState(['All'])
@@ -63,6 +64,7 @@ export default function Products() {
   if (selectedCat !== 'All') filtered = filtered.filter(p => p.category === selectedCat)
   if (searchQuery) filtered = filtered.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
   if (badgeFilter) filtered = filtered.filter(p => p.badge === badgeFilter)
+  if (newArrivalFilter) filtered = filtered.filter(p => p.isNewArrival)
   if (priceRange) filtered = filtered.filter(p => p.price >= priceRange.min && p.price <= priceRange.max)
   if (minRating > 0) filtered = filtered.filter(p => p.rating >= minRating)
   if (sort === 'low') filtered = [...filtered].sort((a, b) => a.price - b.price)
@@ -173,6 +175,8 @@ export default function Products() {
           <h1 className="text-3xl font-extrabold">
             {searchQuery
               ? `Results for "${searchQuery}"`
+              : newArrivalFilter
+              ? 'New Arrivals'
               : badgeFilter
               ? `${badgeFilter} Products`
               : sort === 'discount'
