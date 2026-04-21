@@ -19,6 +19,8 @@ export const getSliders = () => fetchData('/sliders');
 export const getOfferImages = () => fetchData('/offer-images');
 export const getOfferTexts = () => fetchData('/offer-texts');
 export const getProductById = (id) => fetchData(`/products/${id}`);
+export const getSearchSuggestions = (query) => fetchData(`/products/search/suggestions?query=${query}`);
+
 
 // Review API
 export const getApprovedReviewsByProduct = (productId) => fetchData(`/reviews/product/${productId}`);

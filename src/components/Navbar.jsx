@@ -40,8 +40,13 @@ export default function Navbar() {
   const [dynamicOffers, setDynamicOffers] = useState([])
   const [scrolled, setScrolled] = useState(false)
   const [categories, setCategories] = useState([])
+  const [suggestions, setSuggestions] = useState([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false)
   const catRef = useRef(null)
   const userRef = useRef(null)
+  const searchRef = useRef(null)
+
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -64,10 +69,36 @@ export default function Navbar() {
     const handler = (e) => {
       if (catRef.current && !catRef.current.contains(e.target)) setCatOpen(false)
       if (userRef.current && !userRef.current.contains(e.target)) setUserMenuOpen(false)
+      if (searchRef.current && !searchRef.current.contains(e.target)) setShowSuggestions(false)
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
+
+  // Search Suggestions Logic
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      const query = search.trim();
+      if (query.length < 2) {
+        setSuggestions([]);
+        return;
+      }
+      setLoadingSuggestions(true);
+      try {
+        const { getSearchSuggestions } = await import('../api/api');
+        const data = await getSearchSuggestions(query);
+        setSuggestions(data.suggestions || []);
+      } catch (err) {
+        console.error('Search suggestions failed:', err);
+      } finally {
+        setLoadingSuggestions(false);
+      }
+    };
+
+    const timeoutId = setTimeout(fetchSuggestions, 300);
+    return () => clearTimeout(timeoutId);
+  }, [search]);
+
 
   // Close mobile menu on route change
   useEffect(() => { setMenuOpen(false); setSearchOpen(false) }, [location.pathname])
@@ -188,19 +219,85 @@ export default function Navbar() {
           </div>
 
           {/* Desktop Search - moved to right */}
-          <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-xl ml-auto">
-            <div className="flex w-full bg-white rounded-xl overflow-hidden shadow-sm border border-white/20">
-              <input
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Search for products, brands, categories..."
-                className="flex-1 px-4 py-2.5 text-dark outline-none text-sm"
-              />
-              <button type="submit" className="bg-accent hover:bg-teal-light px-5 py-2 text-white transition flex items-center gap-1 shrink-0">
-                <FiSearch size={16} />
-              </button>
-            </div>
-          </form>
+          <div className="hidden md:flex flex-1 max-w-xl ml-auto relative" ref={searchRef}>
+            <form onSubmit={handleSearch} className="w-full">
+              <div className="flex w-full bg-white rounded-xl overflow-hidden shadow-sm border border-white/20">
+                <input
+                  value={search}
+                  onChange={e => {
+                    setSearch(e.target.value);
+                    setShowSuggestions(true);
+                  }}
+                  onFocus={() => setShowSuggestions(true)}
+                  placeholder="Search for products, brands, categories..."
+                  className="flex-1 px-4 py-2.5 text-dark outline-none text-sm"
+                />
+                <button type="submit" className="bg-accent hover:bg-teal-light px-5 py-2 text-white transition flex items-center gap-1 shrink-0">
+                  <FiSearch size={16} />
+                </button>
+              </div>
+            </form>
+
+            {/* Suggestions Dropdown */}
+            {showSuggestions && (search.trim().length >= 2) && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-border overflow-hidden z-[60] animate-fade-in">
+                {loadingSuggestions ? (
+                  <div className="p-4 text-center text-muted text-sm flex items-center justify-center gap-2">
+                    <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin"></div>
+                    Searching...
+                  </div>
+                ) : suggestions.length > 0 ? (
+                  <div className="py-2">
+                    <div className="px-4 py-2 text-[10px] font-bold text-muted uppercase tracking-wider">Product Results</div>
+                    {suggestions.map((item) => (
+                      <button
+                        key={item._id}
+                        onClick={() => {
+                          navigate(`/products/${item._id}`);
+                          setShowSuggestions(false);
+                          setSearch('');
+                        }}
+
+                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition group text-left"
+                      >
+                        <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden shrink-0">
+                          {item.images?.[0] ? (
+                            <img src={item.images[0]} alt="" className="w-full h-full object-cover group-hover:scale-110 transition" />
+                          ) : (
+                            <FiPackage className="text-muted" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-dark font-semibold text-sm truncate">{item.name}</div>
+                          <div className="text-muted text-xs truncate">{item.category?.title || 'Product'}</div>
+                        </div>
+                        <div className="text-accent opacity-0 group-hover:opacity-100 transition translate-x-2 group-hover:translate-x-0">
+                          <FiChevronDown size={14} className="-rotate-90" />
+                        </div>
+                      </button>
+                    ))}
+                    <div className="border-t border-border mt-2 p-2">
+                      <button
+                        onClick={handleSearch}
+                        className="w-full py-2 text-center text-xs font-bold text-accent hover:bg-accent/5 rounded-lg transition"
+                      >
+                        See all results for "{search}"
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-8 text-center">
+                    <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <FiSearch size={20} className="text-muted" />
+                    </div>
+                    <div className="text-dark font-medium text-sm">No products found</div>
+                    <div className="text-muted text-xs mt-1">Try searching for something else</div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
 
           {/* Right Icons */}
           <div className="flex items-center gap-1">
@@ -240,19 +337,74 @@ export default function Navbar() {
 
         {/* Mobile Search */}
         {searchOpen && (
-          <div className="md:hidden px-4 pb-3 pt-1">
-            <form onSubmit={handleSearch} className="flex bg-white rounded-xl overflow-hidden shadow">
+          <div className="md:hidden px-4 pb-3 pt-1 relative">
+            <form onSubmit={handleSearch} className="flex bg-white rounded-xl overflow-hidden shadow border border-border">
               <input
                 value={search}
-                onChange={e => setSearch(e.target.value)}
+                onChange={e => {
+                  setSearch(e.target.value);
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => setShowSuggestions(true)}
                 placeholder="Search products..."
                 className="flex-1 px-4 py-2.5 text-dark outline-none text-sm"
                 autoFocus
               />
               <button type="submit" className="bg-accent px-4 py-2 text-white"><FiSearch /></button>
             </form>
+
+            {/* Suggestions Dropdown for Mobile */}
+            {showSuggestions && (search.trim().length >= 2) && (
+              <div className="absolute top-full left-4 right-4 mt-1 bg-white rounded-xl shadow-2xl border border-border overflow-hidden z-[60] animate-fade-in max-h-[60vh] overflow-y-auto">
+                {loadingSuggestions ? (
+                  <div className="p-4 text-center text-muted text-xs flex items-center justify-center gap-2">
+                    <div className="w-3 h-3 border-2 border-accent border-t-transparent rounded-full animate-spin"></div>
+                    Searching...
+                  </div>
+                ) : suggestions.length > 0 ? (
+                  <div className="py-1">
+                    {suggestions.map((item) => (
+                      <button
+                        key={item._id}
+                        onClick={() => {
+                          navigate(`/products/${item._id}`);
+                          setShowSuggestions(false);
+                          setSearchOpen(false);
+                          setSearch('');
+                        }}
+
+                        className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 active:bg-gray-100 transition text-left"
+                      >
+                        <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden shrink-0">
+                          {item.images?.[0] ? (
+                            <img src={item.images[0]} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <FiPackage size={14} className="text-muted" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-dark font-semibold text-xs truncate">{item.name}</div>
+                          <div className="text-muted text-[10px] truncate">{item.category?.title || 'Product'}</div>
+                        </div>
+                      </button>
+                    ))}
+                    <button
+                      onClick={handleSearch}
+                      className="w-full py-2 text-center text-[10px] font-bold text-accent border-t border-border mt-1"
+                    >
+                      See all results
+                    </button>
+                  </div>
+                ) : (
+                  <div className="p-4 text-center">
+                    <div className="text-muted text-xs">No products found</div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
+
 
         {/* Mobile Menu */}
         {menuOpen && (
