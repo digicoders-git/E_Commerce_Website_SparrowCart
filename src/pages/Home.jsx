@@ -430,9 +430,9 @@ const Home = () => {
                       <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full text-[10px] font-bold text-accent mb-6 border border-white/10 tracking-widest uppercase">
                         <FiZap className="animate-pulse" /> Limited Edition Deal
                       </div>
-                      <h2 className="text-2xl md:text-5xl font-extrabold text-white leading-[1.1] mb-6 drop-shadow-sm">
+                      <h1 className="text-sm md:text-4xl font-extrabold text-white leading-[1.1] mb-6 drop-shadow-sm">
                         {mainText}
-                      </h2>
+                      </h1>
                       <div className="flex flex-col sm:flex-row gap-4 md:gap-5 items-center">
                         <Link
                           to="/products"
@@ -455,7 +455,7 @@ const Home = () => {
                     </div>
 
                     {/* Right Side: Full Image - Enlarged */}
-                    <div className="w-full md:w-1/2 h-[280px] md:h-[500px] relative z-0 order-1 md:order-2 flex items-center justify-center">
+                    <div className="w-full md:w-1/2 h-[280px] md:h-[300px] relative z-0 order-1 md:order-2 flex items-center justify-center">
                       <div className="absolute inset-0 bg-accent/20 rounded-full blur-[100px] opacity-40 animate-pulse" />
                       <img
                         src={img.image}
