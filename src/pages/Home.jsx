@@ -120,17 +120,17 @@ const Home = () => {
     const loadHomeData = async () => {
       try {
         setLoading(true)
-        
+
         // Use individual try-catch to ensure one failure doesn't block the rest
         const safeFetch = async (fn, defaultVal = {}) => {
           try { return await fn(); } catch (e) { console.error(e); return defaultVal; }
         };
 
         const [
-          slidersData, 
-          categoriesData, 
-          productsData, 
-          offerImagesData, 
+          slidersData,
+          categoriesData,
+          productsData,
+          offerImagesData,
           offerTextsData,
           reviewsData
         ] = await Promise.all([
@@ -158,7 +158,7 @@ const Home = () => {
         if (productsData.products && productsData.products.length > 0) {
           const mappedProducts = productsData.products.map(mapProduct)
           setFeaturedProducts(mappedProducts.filter(p => p.badge).slice(0, 8))
-          
+
           const arrivalProducts = mappedProducts.filter(p => p.isNewArrival)
           if (arrivalProducts.length > 0) {
             setNewArrivals(arrivalProducts.slice(0, 10))
@@ -166,12 +166,12 @@ const Home = () => {
             setNewArrivals(mappedProducts.slice(0, 10))
           }
         }
-        
+
         // 4. Process Offers
         setOfferImages(offerImagesData.offerImages?.map(mapOfferImage) || [])
         setOfferTexts(offerTextsData.offerTexts?.map(mapOfferText) || [])
         setReviews(reviewsData.reviews || [])
-        
+
         setLoading(false)
       } catch (err) {
         console.error('Critical failure loading home data:', err)
@@ -371,15 +371,15 @@ const Home = () => {
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {categories.map(cat => (
-            <Link 
-              key={cat.id} 
-              to={`/products?category=${cat.name}`} 
+            <Link
+              key={cat.id}
+              to={`/products?category=${cat.name}`}
               className="group flex flex-col items-center p-5 rounded-[2rem] bg-white border border-border hover:border-teal hover:shadow-2xl hover:shadow-teal/10 transition-all duration-500"
             >
               <div className="w-full aspect-square rounded-2xl bg-neutral flex items-center justify-center overflow-hidden mb-4 group-hover:scale-105 transition-all duration-500 shadow-sm group-hover:shadow-lg">
-                <img 
-                  src={cat.image} 
-                  alt={cat.name} 
+                <img
+                  src={cat.image}
+                  alt={cat.name}
                   className="w-full h-full object-contain p-2 transition-transform duration-700 group-hover:scale-110"
                   onError={(e) => {
                     e.target.src = 'https://via.placeholder.com/300?text=' + cat.name;
@@ -420,30 +420,30 @@ const Home = () => {
             {offerImages.slice(0, 1).map((img) => {
               const mainText = offerTexts[0]?.text || 'Next-Gen Electronics Sale';
               return (
-                <div key={img.id} className="relative group overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#0F3D3E] to-[#1a5557] min-h-[400px] flex items-center shadow-2xl border border-white/5">
+                <div key={img.id} className="relative group overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#0F3D3E] to-[#1a5557] min-h-[580px] md:h-[500px] flex items-center shadow-2xl border border-white/5">
                   {/* Subtle Background pattern/glow */}
-                  <div className="absolute top-0 right-0 w-1/2 h-full bg-accent/10 blur-[100px] rounded-full transform translate-x-1/2" />
-                  
-                  <div className="relative w-full h-full flex flex-col md:flex-row items-center px-8 md:px-16 py-12 gap-12">
+                  <div className="absolute top-0 right-0 w-1/2 h-10 bg-accent/10 blur-[100px] rounded-full transform translate-x-1/2" />
+
+                  <div className="relative w-full h-full flex flex-col md:flex-row items-center px-6 md:px-16 py-10 md:py-12 gap-8 md:gap-12">
                     {/* Left Side: Text Content */}
                     <div className="w-full md:w-1/2 text-left z-10 order-2 md:order-1">
                       <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full text-[10px] font-bold text-accent mb-6 border border-white/10 tracking-widest uppercase">
                         <FiZap className="animate-pulse" /> Limited Edition Deal
                       </div>
-                      <h2 className="text-3xl md:text-5xl font-extrabold text-white leading-[1.1] mb-6 drop-shadow-sm">
+                      <h2 className="text-2xl md:text-5xl font-extrabold text-white leading-[1.1] mb-6 drop-shadow-sm">
                         {mainText}
                       </h2>
-                      <div className="flex flex-col sm:flex-row gap-5 items-center">
-                        <Link 
-                          to="/products" 
+                      <div className="flex flex-col sm:flex-row gap-4 md:gap-5 items-center">
+                        <Link
+                          to="/products"
                           className="w-full sm:w-auto bg-coral hover:bg-coral-dark text-white font-bold px-10 py-4 rounded-2xl transition-all hover:scale-105 shadow-xl shadow-coral/30 flex items-center justify-center gap-2"
                         >
                           Shop Now <FiArrowRight />
                         </Link>
                         <div className="flex gap-4">
                           {[
-                            {v: 'Free', l: 'Shipping'},
-                            {v: '24/7', l: 'Chat'}
+                            { v: 'Free', l: 'Shipping' },
+                            { v: '24/7', l: 'Chat' }
                           ].map((s, i) => (
                             <div key={i} className="flex flex-col items-center">
                               <span className="text-accent font-bold text-lg leading-none">{s.v}</span>
@@ -455,12 +455,12 @@ const Home = () => {
                     </div>
 
                     {/* Right Side: Full Image - Enlarged */}
-                    <div className="w-full md:w-1/2 h-[350px] md:h-[500px] relative z-0 order-1 md:order-2 flex items-center justify-center">
+                    <div className="w-full md:w-1/2 h-[280px] md:h-[500px] relative z-0 order-1 md:order-2 flex items-center justify-center">
                       <div className="absolute inset-0 bg-accent/20 rounded-full blur-[100px] opacity-40 animate-pulse" />
-                      <img 
-                        src={img.image} 
-                        alt="Promo Product" 
-                        className="relative max-w-full max-h-full object-contain scale-110 md:scale-125 transform group-hover:scale-[1.35] group-hover:-rotate-3 transition-transform duration-1000 drop-shadow-[0_30px_60px_rgba(0,0,0,0.6)]"
+                      <img
+                        src={img.image}
+                        alt="Promo Product"
+                        className="relative w-full max-h-full object-contain scale-100 md:scale-125 transform group-hover:scale-[1.1] md:group-hover:scale-[1.35] group-hover:-rotate-3 transition-transform duration-1000 drop-shadow-[0_20px_40px_rgba(0,0,0,0.5)] md:drop-shadow-[0_30px_60px_rgba(0,0,0,0.6)]"
                       />
                     </div>
                   </div>
@@ -470,26 +470,33 @@ const Home = () => {
 
             {/* Sub Banners if more exist */}
             {offerImages.length > 1 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
                 {offerImages.slice(1, 3).map((img, idx) => {
                   const subText = offerTexts[idx + 1]?.text || 'More Tech Deals';
                   return (
-                    <div key={img.id} className="relative group overflow-hidden rounded-[2rem] aspect-[21/9] shadow-xl border border-border/50">
-                      <img 
-                        src={img.image} 
-                        alt="Sub Offer" 
-                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                      <div className="relative h-full flex flex-col justify-end p-8">
-                        <h3 className="text-xl md:text-2xl font-bold text-white mb-4 line-clamp-2">
+                    <div key={img.id} className="group overflow-hidden rounded-[2.5rem] bg-white shadow-2xl flex flex-col md:flex-row h-auto md:min-h-[280px] border border-border/50 transition-all hover:border-teal/20">
+                      {/* Image Side */}
+                      <div className="w-full md:w-1/2 h-[220px] md:h-auto bg-neutral/30 flex items-center justify-center p-8 overflow-hidden relative order-1 md:order-2">
+                        <div className="absolute inset-0 bg-gradient-to-br from-teal/5 to-transparent pointer-events-none" />
+                        <img 
+                          src={img.image} 
+                          alt="Sub Offer" 
+                          className="relative w-full h-full object-contain drop-shadow-2xl transition-transform duration-1000 group-hover:scale-110" 
+                        />
+                      </div>
+                      
+                      {/* Content Side */}
+                      <div className="w-full md:w-1/2 p-8 md:p-10 flex flex-col justify-center relative order-2 md:order-1 bg-white">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-teal/5 rounded-full blur-3xl opacity-50" />
+                        <div className="text-teal font-bold text-[10px] uppercase tracking-[0.2em] mb-4">Limited Offer</div>
+                        <h3 className="text-xl md:text-2xl font-extrabold text-dark mb-6 leading-tight">
                           {subText}
                         </h3>
                         <Link 
                           to="/products"
-                          className="bg-white text-dark font-bold px-6 py-2.5 rounded-xl text-sm w-fit transition-all hover:bg-teal hover:text-white"
+                          className="bg-teal text-white font-extrabold px-8 py-3.5 rounded-xl text-xs w-fit transition-all hover:bg-teal-hover hover:scale-105 shadow-lg shadow-teal/20 flex items-center gap-2"
                         >
-                          Grab Deal
+                          GRAB DEAL <FiArrowRight />
                         </Link>
                       </div>
                     </div>
@@ -516,7 +523,7 @@ const Home = () => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 {[...Array(4)].map((_, i) => (
-                   <div key={i} className="w-24 h-24 rounded-3xl bg-white/10 backdrop-blur-md border border-white/20" />
+                  <div key={i} className="w-24 h-24 rounded-3xl bg-white/10 backdrop-blur-md border border-white/20" />
                 ))}
               </div>
             </div>
