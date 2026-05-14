@@ -1,9 +1,11 @@
 import { createContext, useContext, useState, useEffect } from 'react'
+import { sendOtp, verifyOtp } from '../api/api'
 
 const AuthContext = createContext()
 
 const STORAGE_KEY = 'sparrowcart_users'
 const SESSION_KEY = 'sparrowcart_session'
+const TOKEN_KEY = 'authToken'
 
 const getUsers = () => JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
 const saveUsers = (users) => localStorage.setItem(STORAGE_KEY, JSON.stringify(users))
@@ -11,9 +13,17 @@ const saveUsers = (users) => localStorage.setItem(STORAGE_KEY, JSON.stringify(us
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     try {
-      const session = JSON.parse(localStorage.getItem(SESSION_KEY))
+      // Check for JWT token first
+      const token = localStorage.getItem(TOKEN_KEY)
+      if (token) {
+        // If JWT token exists, try to get user from session
+        const session = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null')
+        return session
+      }
+      
+      // Fallback to old session system
+      const session = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null')
       if (session?.rememberMe) return session
-      // session-only login (no rememberMe) — clear on fresh load if tab was closed
       return session
     } catch { return null }
   })
@@ -22,7 +32,10 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     if (user) localStorage.setItem(SESSION_KEY, JSON.stringify(user))
-    else localStorage.removeItem(SESSION_KEY)
+    else {
+      localStorage.removeItem(SESSION_KEY)
+      localStorage.removeItem(TOKEN_KEY)
+    }
   }, [user])
 
   const register = ({ name, email, phone, password }) => {
@@ -47,21 +60,36 @@ export function AuthProvider({ children }) {
     return { success: true }
   }
 
-  const loginWithPhone = ({ phone }) => {
-    // OTP login — find or create user by phone
-    const users = getUsers()
-    let found = users.find(u => u.phone === phone)
-    if (!found) {
-      found = { id: Date.now(), name: 'User', email: '', phone, password: '', createdAt: new Date().toISOString() }
-      saveUsers([...users, found])
+  const loginWithPhone = async ({ phone }) => {
+    try {
+      // First send OTP
+      const otpResult = await sendOtp(phone)
+      if (!otpResult.success) {
+        return { error: otpResult.message || 'Failed to send OTP' }
+      }
+      
+      // For demo, auto-verify with dummy OTP (remove in production)
+      const verifyResult = await verifyOtp(phone, '123456')
+      if (!verifyResult.success) {
+        return { error: verifyResult.message || 'OTP verification failed' }
+      }
+      
+      // Set user from backend response
+      const { password: _, ...safeUser } = verifyResult.user || { phone, name: 'User' }
+      setUser(safeUser)
+      setAuthModal(false)
+      return { success: true }
+    } catch (error) {
+      console.error('Login with phone error:', error)
+      return { error: 'Login failed. Please try again.' }
     }
-    const { password: _, ...safeUser } = found
-    setUser(safeUser)
-    setAuthModal(false)
-    return { success: true }
   }
 
-  const logout = () => setUser(null)
+  const logout = () => {
+    setUser(null)
+    localStorage.removeItem(TOKEN_KEY)
+    localStorage.removeItem(SESSION_KEY)
+  }
 
   const updateUser = (data) => {
     const updated = { ...user, ...data }
