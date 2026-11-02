@@ -150,7 +150,7 @@ export default function Navbar() {
   return (
     <>
       {/* Offer Ticker */}
-      <div className="bg-teal-hover text-white text-[10px] sm:text-xs py-2 px-4 text-center overflow-hidden relative">
+      <div className="bg-teal-hover text-white text-[10px] sm:text-xs py-1 px-4 text-center overflow-hidden relative">
         <div
           key={offerIdx}
           className="animate-fade-in font-medium tracking-wider uppercase h-4 flex items-center justify-center"
@@ -173,18 +173,18 @@ export default function Navbar() {
 
       <nav className={`bg-teal text-white sticky top-0 z-50 transition-shadow ${scrolled ? 'shadow-2xl' : 'shadow-lg'}`}>
         {/* Main Bar */}
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
+        <div className="max-w-7xl mx-auto px-4 py-1.5 sm:py-2 flex items-center gap-4">
 
-          <Link to="/" className="flex items-center gap-2 shrink-0">
-            <img src="/logo.png" alt="logo" className="w-14 h-14 rounded-full object-cover shadow-lg" />
-            <span className="text-xl font-bold hidden sm:block">Sparrow<span className="text-accent">Cart</span></span>
+          <Link to="/" className="flex items-center shrink-0">
+            <img src="/logo2.png" alt="SparrowCart" className="h-9 sm:h-10 md:h-12 w-auto object-contain" />
+
           </Link>
 
           {/* Category Dropdown */}
           <div className="relative hidden md:block shrink-0" ref={catRef}>
             <button
               onClick={() => setCatOpen(o => !o)}
-              className="flex items-center gap-2 bg-teal-light hover:bg-teal-hover px-4 py-2.5 rounded-xl text-sm font-semibold transition"
+              className="flex items-center gap-2 bg-teal-light hover:bg-teal-hover px-3.5 py-1.5 rounded-xl text-sm font-semibold transition"
             >
               <FiMenu size={16} /> Categories <FiChevronDown size={14} className={`transition-transform ${catOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -230,9 +230,9 @@ export default function Navbar() {
                   }}
                   onFocus={() => setShowSuggestions(true)}
                   placeholder="Search for products, brands, categories..."
-                  className="flex-1 px-4 py-2.5 text-dark outline-none text-sm"
+                  className="flex-1 px-3.5 py-1.5 text-dark outline-none text-sm"
                 />
-                <button type="submit" className="bg-accent hover:bg-teal-light px-5 py-2 text-white transition flex items-center gap-1 shrink-0">
+                <button type="submit" className="bg-accent hover:bg-teal-light px-4 py-1.5 text-white transition flex items-center gap-1 shrink-0">
                   <FiSearch size={16} />
                 </button>
               </div>
@@ -317,19 +317,19 @@ export default function Navbar() {
         {/* Desktop Category Nav Strip */}
         <div className="hidden md:block bg-teal-light border-t border-white/10">
           <div className="max-w-7xl mx-auto px-4 flex items-center gap-1 overflow-x-auto scrollbar-hide">
-            <Link to="/" className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap transition hover:text-accent ${location.pathname === '/' ? 'text-accent border-b-2 border-accent' : 'text-white/80'}`}>
+            <Link to="/" className={`px-3.5 py-1.5 text-xs sm:text-sm font-medium whitespace-nowrap transition hover:text-accent ${location.pathname === '/' ? 'text-accent border-b-2 border-accent' : 'text-white/80'}`}>
               Home
             </Link>
-            <Link to="/products?sort=discount" className="px-4 py-2.5 text-sm font-medium whitespace-nowrap text-coral hover:text-coral-dark transition">
+            <Link to="/products?sort=discount" className="px-3.5 py-1.5 text-xs sm:text-sm font-medium whitespace-nowrap text-coral hover:text-coral-dark transition">
               Deals
             </Link>
-            <Link to="/products?newArrival=true" className="px-4 py-2.5 text-sm font-medium whitespace-nowrap text-accent hover:text-white transition">
+            <Link to="/products?newArrival=true" className="px-3.5 py-1.5 text-xs sm:text-sm font-medium whitespace-nowrap text-accent hover:text-white transition">
               New Arrivals
             </Link>
-            <Link to="/about" className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap transition hover:text-accent ${location.pathname === '/about' ? 'text-accent border-b-2 border-accent' : 'text-white/80'}`}>
+            <Link to="/about" className={`px-3.5 py-1.5 text-xs sm:text-sm font-medium whitespace-nowrap transition hover:text-accent ${location.pathname === '/about' ? 'text-accent border-b-2 border-accent' : 'text-white/80'}`}>
               About Us
             </Link>
-            <Link to="/contact" className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap transition hover:text-accent ${location.pathname === '/contact' ? 'text-accent border-b-2 border-accent' : 'text-white/80'}`}>
+            <Link to="/contact" className={`px-3.5 py-1.5 text-xs sm:text-sm font-medium whitespace-nowrap transition hover:text-accent ${location.pathname === '/contact' ? 'text-accent border-b-2 border-accent' : 'text-white/80'}`}>
               Contact Us
             </Link>
           </div>

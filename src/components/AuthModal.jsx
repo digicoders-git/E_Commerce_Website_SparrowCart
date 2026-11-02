@@ -92,7 +92,7 @@ export default function AuthModal() {
         {/* Left Panel */}
         <div className="hidden md:flex flex-col justify-between bg-gradient-to-br from-teal to-teal-light text-white p-10 w-80 shrink-0">
           <div>
-            <img src="/logo.png" alt="logo" className="w-12 h-12 rounded-full border-2 border-accent mb-6 object-cover" />
+            <img src="/logo2.png" alt="SparrowCart" className="h-10 w-auto object-contain mb-6" />
             <h2 className="text-3xl font-extrabold leading-tight mb-3">
               {mode === 'login' ? 'Welcome Back!' : mode === 'register' ? 'Join SparrowCart' : 'Quick Login'}
             </h2>

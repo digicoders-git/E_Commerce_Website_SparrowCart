@@ -9,8 +9,8 @@ export default function Footer() {
         {/* Brand */}
         <div>
           <div className="flex items-center gap-2 mb-4">
-            <img src="/logo.png" alt="logo" className="w-10 h-10 rounded-full object-cover border-2 border-accent shadow" />
-            <span className="text-xl font-bold">Sparrow<span className="text-accent">Cart</span></span>
+            <img src="/logo2.png" alt="SparrowCart" className="h-12 sm:h-14 w-auto object-contain" />
+
           </div>
           <p className="text-sm text-white/60 leading-relaxed mb-5">
             Your one-stop shop for everything you love. Quality products, great prices, delivered fast.
